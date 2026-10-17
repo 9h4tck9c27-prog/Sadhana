@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14162B">
+<meta name="description" content="A quiet container for a daily sadhana. No accounts, no notifications — just the practice and the count.">
+<title>Sadhana Tracker</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sadhana">
+<link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash/320x568@2x.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash/375x667@2x.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/375x812@3x.png">
+<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/390x844@3x.png">
+<link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/393x852@3x.png">
+<link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/402x874@3x.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash/414x896@2x.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/414x896@3x.png">
+<link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/428x926@3x.png">
+<link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/430x932@3x.png">
+<link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/440x956@3x.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Poppins:wght@300;400;500;600;700;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Poppins:wght@300;400;500;600;700;600&display=swap"></noscript>
+<style>
+:root{
+  --ink:#14162B; --slate:#1B1E38; --horizon:#2C3057;
+  --moon:#E8E4DA; --muted:#8B8FA8; --dim:#AEB1C2; --body:#C9CBD8;
+  --ash:#454A6B; --asht:#767BA4; --amrit:#D9A441;
+  --serif:'Lora',Georgia,serif; --util:'Poppins',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--ink); color:var(--moon); font-family:var(--serif);
+  line-height:1.5; overflow-x:hidden;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+#app{max-width:460px;margin:0 auto;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;padding:0 22px 30px}
+
+/* dot band */
+.band{display:flex;gap:9px;justify-content:center;align-items:center;padding:16px 0 14px;flex-wrap:nowrap}
+.grp{display:flex;gap:4.5px}
+.dot{width:5px;height:5px;border-radius:50%;border:1px solid rgba(232,228,218,.16);background:transparent;flex:none}
+.dot.done{background:var(--amrit);border-color:var(--amrit);box-shadow:0 0 7px rgba(217,164,65,.6)}
+.dot.now{border-color:var(--moon);transform:scale(1.5)}
+.dot.ash{background:var(--ash);border-color:var(--ash);box-shadow:none}
+.bar{height:6px;border-radius:3px;background:#252A48;width:100%;overflow:hidden;margin:18px 0 12px}
+.bar i{display:block;height:100%;background:var(--amrit);border-radius:3px}
+@media (prefers-reduced-motion:no-preference){
+  .dot.now{animation:breathe 5.5s ease-in-out infinite}
+  @keyframes breathe{0%,100%{opacity:.45}50%{opacity:1}}
+}
+
+/* type */
+.lab{font-family:var(--util);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.eyebrow{font-family:var(--util);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--amrit);font-weight:500}
+h1{font-size:27px;font-weight:400;line-height:1.22;letter-spacing:-.01em;margin:14px 0 0}
+h1 em{font-style:italic;color:var(--amrit)}
+h2{font-size:22px;font-weight:400;line-height:1.24;margin:12px 0 0}
+p{font-size:15px;font-weight:400;color:var(--dim);margin-top:16px}
+p.sm{font-size:13.5px;color:var(--muted);margin-top:12px}
+p.accent{color:var(--amrit);font-style:italic}
+.grow{flex:1;min-height:20px}
+.center{text-align:center}
+
+/* lotus */
+.lotus{display:block;margin:0 auto}
+.lotus path{fill:none;stroke:#9AA0BE;stroke-width:1.6;vector-effect:non-scaling-stroke}
+.lotus line{stroke:#9AA0BE;stroke-width:1.4;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.lotus.gold path{stroke:var(--amrit)}
+.lotus.gold line{stroke:var(--amrit)}
+.lotus.solid path{fill:var(--amrit);stroke:var(--ink);stroke-width:1.4}
+.lotus.solid line{display:none}
+@media (prefers-reduced-motion:no-preference){
+  .lotus.draw path{stroke-dasharray:180;stroke-dashoffset:180;animation:draw 1s ease-out forwards}
+  .lotus.draw line{opacity:0;animation:fade .5s ease-out .9s forwards}
+  .lotus.draw path:nth-child(1){animation-delay:0s}
+  .lotus.draw path:nth-child(2){animation-delay:.09s}
+  .lotus.draw path:nth-child(3){animation-delay:.09s}
+  .lotus.draw path:nth-child(4){animation-delay:.18s}
+  .lotus.draw path:nth-child(5){animation-delay:.18s}
+  .lotus.draw path:nth-child(6){animation-delay:.27s}
+  .lotus.draw path:nth-child(7){animation-delay:.27s}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  @keyframes fade{to{opacity:1}}
+  .lotus.solid path{opacity:0;animation:fade .5s ease-out forwards}
+  .lotus.solid path:nth-child(n+2){animation-delay:.12s}
+  .lotus.solid path:nth-child(n+4){animation-delay:.24s}
+  .lotus.solid path:nth-child(n+6){animation-delay:.36s}
+}
+.wordmark{font-family:var(--util);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--moon);text-align:center;margin-top:14px;font-weight:500}
+
+/* controls */
+.hr{height:1px;background:var(--horizon);margin:22px 0}
+input[type=text],input[type=date],select,textarea{
+  width:100%;background:transparent;border:none;border-bottom:1px solid var(--horizon);
+  color:var(--moon);font-family:var(--serif);font-size:17px;padding:8px 0 10px;
+  border-radius:0;-webkit-appearance:none;appearance:none;
+}
+input:focus,select:focus,textarea:focus{outline:none;border-bottom-color:var(--amrit)}
+input::placeholder,textarea::placeholder{color:var(--muted);font-style:italic}
+select{background:var(--slate);border:1px solid var(--amrit);border-radius:5px;padding:12px 14px;font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.chip{
+  font-family:var(--util);font-size:12.5px;padding:8px 14px;border:1px solid var(--horizon);
+  border-radius:100px;color:var(--dim);background:transparent;cursor:pointer;
+}
+.chip[aria-pressed=true]{border-color:var(--amrit);color:var(--amrit);background:rgba(217,164,65,.09)}
+.chip.dash{border-style:dashed;color:var(--muted)}
+.btn{
+  display:block;width:100%;font-family:var(--util);font-size:13.5px;font-weight:500;
+  letter-spacing:.05em;text-align:center;padding:16px;border-radius:100px;border:none;
+  background:var(--amrit);color:var(--ink);margin-top:22px;cursor:pointer;
+}
+.btn.quiet{background:transparent;border:1px solid var(--horizon);color:var(--moon)}
+.btn.text{background:transparent;color:var(--muted);padding:13px;font-size:12.5px;margin-top:8px;border:none}
+.btn:disabled{opacity:.4}
+.row{display:flex;gap:10px;align-items:flex-end}
+.mic{width:42px;height:42px;border-radius:50%;border:1px solid var(--horizon);background:transparent;flex:none;color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.mic.on{border-color:var(--amrit);color:var(--amrit)}
+
+/* hold button */
+.hold{position:relative;overflow:hidden;background:var(--slate);border:1px solid var(--amrit);
+  height:68px;padding:0;margin-top:22px;border-radius:100px;width:100%;display:block;
+  touch-action:none;cursor:pointer;
+  -webkit-user-select:none;-moz-user-select:none;user-select:none;
+  -webkit-touch-callout:none}
+.hold *{-webkit-user-select:none;user-select:none;pointer-events:none}
+.hold .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--amrit);
+  overflow:hidden;z-index:2}
+.hold .lbl{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px}
+.hold .fill .lbl{left:0;top:0;height:100%;right:auto}
+.hold .lbl b{font-family:var(--util);font-weight:700;font-size:21px;letter-spacing:.01em;line-height:1}
+.hold .lbl i{font-family:var(--util);font-style:normal;font-weight:400;font-size:9.5px;
+  letter-spacing:.2em;text-transform:uppercase;line-height:1;opacity:.72}
+.hold .base{color:var(--moon);z-index:1}
+.hold .over{color:var(--ink)}
+.hold.pressing{border-color:var(--moon)}
+
+/* entries */
+.entry{border-top:1px solid var(--horizon);padding:16px 0 18px}
+.entry:first-of-type{border-top:none}
+.emeta{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--util);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.emeta b{color:var(--moon);font-weight:500}
+.shift{font-family:var(--util);font-size:11.5px;color:var(--amrit);margin:9px 0 7px}
+.shift span{color:var(--muted);margin:0 7px}
+.etext{font-size:15.5px;font-style:italic;color:var(--body);line-height:1.45}
+.past .emeta,.past .emeta b,.past .shift,.past .etext,.past .shift span{color:var(--asht)}
+.divider{display:flex;justify-content:space-between;font-family:var(--util);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ash);border-top:1px solid var(--horizon);padding-top:16px;margin-top:26px}
+.stat{border-top:1px solid var(--horizon);padding:15px 0;display:flex;justify-content:space-between;align-items:baseline}
+.stat .k{font-family:var(--util);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-size:19px}
+.stat .v.gold{color:var(--amrit)}
+.sutra{border-left:1.5px solid var(--amrit);padding-left:16px;margin-top:22px}
+.sutra .tl{font-style:italic;font-size:14px;color:var(--moon);margin-top:9px}
+.sutra .en{font-size:14px;color:var(--dim);margin-top:8px}
+.card{border:1px solid var(--horizon);border-radius:9px;padding:16px;margin-top:14px}
+.card.active{border-color:var(--amrit)}
+.note{border:1px solid var(--horizon);background:var(--slate);border-radius:7px;padding:16px;margin-top:24px}
+.steps{margin-top:22px}
+.step{display:flex;gap:14px;align-items:flex-start;margin-top:16px}
+.step .n{font-family:var(--util);font-size:10px;letter-spacing:.14em;color:var(--amrit);font-weight:500;padding-top:4px;flex:none;width:20px}
+.step .t{font-size:15.5px}
+.step .b{font-size:13px;color:var(--muted);margin-top:3px}
+.step svg{flex:none;margin-top:2px}
+.kc{display:inline-block;font-family:var(--util);font-size:12px;background:#242848;border:1px solid var(--horizon);border-radius:5px;padding:7px 12px;margin-right:7px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--slate);border:1px solid var(--horizon);color:var(--moon);font-family:var(--util);font-size:12.5px;padding:12px 20px;border-radius:100px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50}
+.toast.show{opacity:1}
+.beat{margin-bottom:30px}
+.bt{font-family:var(--serif);font-size:25px;color:var(--moon);line-height:1.2}
+.bb{font-size:16px;color:var(--muted);margin-top:5px}
+.kept{display:flex;align-items:center;gap:16px;border-top:1px solid var(--horizon);
+  padding:18px 0;cursor:pointer}
+.kept:last-of-type{border-bottom:1px solid var(--horizon)}
+.keptlotus{flex:none;width:36px;display:flex;align-items:center;justify-content:center}
+.keptbody{flex:1;min-width:0}
+.keptname{font-family:var(--serif);font-size:19px;color:var(--moon)}
+.keptmeta{font-family:var(--util);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin-top:5px}
+.keptdate{font-family:var(--util);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ash);flex:none;text-align:right}
+.dayno{font-family:var(--serif);font-size:96px;line-height:1;color:var(--moon);letter-spacing:-.02em}
+.dayof{font-family:var(--util);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:12px}
+/* Safari's floating toolbar sits over the page and is not covered by
+   safe-area-inset-bottom, so keep buttons clear of it in the browser. */
+body.browser #app{padding-bottom:180px}
+input[type=date]{text-align:left}
+
+/* boot splash — paints from the HTML itself, before any script runs */
+#boot{position:fixed;inset:0;background:var(--ink);display:grid;place-items:center;z-index:100;
+  transition:opacity .45s ease}
+#boot.gone{opacity:0;pointer-events:none}
+#boot svg path{fill:none;stroke:var(--amrit);stroke-width:1.6;vector-effect:non-scaling-stroke;opacity:.55}
+@media (prefers-reduced-motion:no-preference){
+  #boot svg{animation:bloom 2.4s ease-in-out infinite}
+  @keyframes bloom{0%,100%{opacity:.35}50%{opacity:1}}
+}
+</style>
+</head>
+<body>
+<div id="boot" aria-label="Loading">
+<svg width="84" height="52" viewBox="-42 -38 84 52" aria-hidden="true">
+<path transform="rotate(0)" d="M0,0 C-10,-12.54 -5,-28.38 0,-33 C5,-28.38 10,-12.54 0,0"/>
+<path transform="rotate(-32)" d="M0,0 C-9,-11.02 -4.5,-24.94 0,-29 C4.5,-24.94 9,-11.02 0,0"/>
+<path transform="rotate(32)" d="M0,0 C-9,-11.02 -4.5,-24.94 0,-29 C4.5,-24.94 9,-11.02 0,0"/>
+<path transform="rotate(-60)" d="M0,0 C-7.8,-9.12 -3.9,-20.64 0,-24 C3.9,-20.64 7.8,-9.12 0,0"/>
+<path transform="rotate(60)" d="M0,0 C-7.8,-9.12 -3.9,-20.64 0,-24 C3.9,-20.64 7.8,-9.12 0,0"/>
+<path transform="rotate(-86)" d="M0,0 C-6.2,-6.46 -3.1,-14.62 0,-17 C3.1,-14.62 6.2,-6.46 0,0"/>
+<path transform="rotate(86)" d="M0,0 C-6.2,-6.46 -3.1,-14.62 0,-17 C3.1,-14.62 6.2,-6.46 0,0"/>
+</svg>
+</div>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script src="/firebase-config.js"></script>
+<script>
+'use strict';
+const KEY = 'sadhana:v1';
+// Practice must be unbroken — that is the rule. Logging it need not be.
+// For a few hours after the boundary we ask whether yesterday was practised,
+// so a kept day is never lost to forgetting the phone.
+const LOG_GRACE_HOURS = 6;
+// Ordered expansive to contracted. Fourteen, because after 39 days of real
+// use the old twelve collapsed: departures landed on Steady or Fulfilled 69%
+// of the time, and only six words were ever chosen for "after" at all. The
+// additions give the settled end somewhere to spread, and Quiet stops Steady
+// absorbing every ordinary day.
+const DEFAULT_WORDS = ['Radiant','Fulfilled','Light','Spacious','Clear','Warm',
+                       'Steady','Quiet','Tender',
+                       'Resistant','Scattered','Restless','Dull','Heavy'];
+// Never chosen once in 78 selections: Happy reads as too absolute to claim,
+// Anxious as too clinical to pick. Retired — but only from someone's list if
+// they never used them.
+const RETIRED_WORDS = ['Happy','Anxious'];
+const MAX_CUSTOM_WORDS = 6;
+const OBSTACLES = ['Illness','Dullness','Doubt','Carelessness','Laziness','Circumstance'];
+
+// Someone's own past practices are the only list guaranteed to be right for them,
+// so those come first. The vayu kriyas are shortcuts, never a canon — free text
+// stays primary and anything typed there is equally valid.
+// Usage is derived from the entries rather than stored, so it stays true even
+// if a record is merged or restored.
+function wordUse(){
+  const c = {};
+  (S.attempts || []).forEach(a => (a.entries || []).forEach(e => {
+    if(e.before) c[e.before] = (c[e.before] || 0) + 1;
+    if(e.after)  c[e.after]  = (c[e.after]  || 0) + 1;
+  }));
+  return c;
+}
+function wordUsed(w){
+  return (S.attempts || []).some(a => (a.entries || []).some(
+    e => e.before === w || e.after === w));
+}
+
+// An existing record carries its own copy of the vocabulary, so a new default
+// reaches nobody without this. Adds words that did not exist before, retires
+// the two that went unused — but never one someone actually chose — and keeps
+// custom additions at the end.
+function migrateWordOrder(){
+  if(!S || !Array.isArray(S.words)) return;
+  const known = new Set(DEFAULT_WORDS.concat(RETIRED_WORDS));
+  const custom = S.words.filter(w => !known.has(w));
+  const kept = RETIRED_WORDS.filter(w => S.words.includes(w) && wordUsed(w));
+  const next = DEFAULT_WORDS.concat(kept, custom);
+  if(next.length !== S.words.length || next.some((w, i) => w !== S.words[i])){
+    S.words = next;
+    return true;
+  }
+  return false;
+}
+
+function pruneWords(){
+  const base = {};
+  DEFAULT_WORDS.concat(RETIRED_WORDS).forEach(w => base[w] = true);
+  const custom = S.words.filter(w => !base[w]);
+  if(custom.length <= MAX_CUSTOM_WORDS) return;
+  const use = wordUse();
+  // keep the most-used; ties go to the most recently added, which sits later
+  const ranked = custom.slice().sort((a, b) => {
+    const d = (use[b] || 0) - (use[a] || 0);
+    return d !== 0 ? d : S.words.indexOf(b) - S.words.indexOf(a);
+  });
+  const keep = new Set(ranked.slice(0, MAX_CUSTOM_WORDS));
+  S.words = S.words.filter(w => base[w] || keep.has(w));
+}
+
+function pastPractices(){
+  const seen = {}, out = [];
+  (S.completed||[]).forEach(c => {
+    if(c && c.practice && !seen[c.practice]){ seen[c.practice] = 1; out.push(c.practice); }
+  });
+  return out.slice(0, 6);
+}
+function suggestionsHTML(){
+  const mine = pastPractices();
+  if(!mine.length) return '';
+  return `<div style="margin-top:24px"><div class="lab">Practised before</div>
+          <div class="chips">${mine.map(w =>
+            `<button class="chip" data-practice="${esc(w)}" aria-pressed="${S.practice===w}">${esc(w)}</button>`
+          ).join('')}</div></div>`;
+}
+
+const $ = s => document.querySelector(s);
+const app = $('#app');
+
+/* ---------- state ---------- */
+function blank(){
+  return {
+    practice:'', lengthDays:40, dayStartHour:3,
+    tz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+    startDate:null, words: DEFAULT_WORDS.slice(),
+    attempts:[], completed:[], onboarded:false, installShown:false,
+    draft:null, view:null, syncOffered:false, freshStart:false, updatedAt:0
+  };
+}
+let S = load();
+function load(){
+  try{ const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; }
+  catch(e){ return null; }
+}
+function save(){
+  S.updatedAt = Date.now();
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch(e){ toast('Could not save — storage is full or blocked'); }
+  idbPut(S);
+  if(SYNC.on) syncPush();
+}
+
+
+/* ---------- a second copy on the device ----------
+   Safari treats IndexedDB as more durable than localStorage and evicts it
+   later. Same data, written alongside; read only if localStorage comes back
+   empty. Every call is fire-and-forget — nothing here can block a save. */
+let _db = null;
+function idbOpen(){
+  if(_db) return Promise.resolve(_db);
+  return new Promise((res, rej) => {
+    try{
+      const r = indexedDB.open('sadhana', 1);
+      r.onupgradeneeded = () => { r.result.createObjectStore('state'); };
+      r.onsuccess = () => { _db = r.result; res(_db); };
+      r.onerror = () => rej(r.error);
+    }catch(e){ rej(e); }
+  });
+}
+function idbPut(state){
+  idbOpen().then(db => {
+    const tx = db.transaction('state', 'readwrite');
+    tx.objectStore('state').put(JSON.stringify(state), 'current');
+  }).catch(()=>{});
+}
+function idbGet(){
+  return idbOpen().then(db => new Promise(res => {
+    const r = db.transaction('state', 'readonly').objectStore('state').get('current');
+    r.onsuccess = () => res(r.result ? JSON.parse(r.result) : null);
+    r.onerror = () => res(null);
+  })).catch(()=>null);
+}
+
+/* ---------- dates ---------- */
+function ymdIn(date, tz){
+  const p = new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);
+  const g = t => p.find(x=>x.type===t).value;
+  return g('year')+'-'+g('month')+'-'+g('day');
+}
+// the sadhana-day a moment belongs to, honouring the 3am boundary and stored tz
+function logicalYMD(date){
+  const shifted = new Date(date.getTime() - S.dayStartHour*3600000);
+  return ymdIn(shifted, S.tz);
+}
+// What the day number WOULD be under a different anchor, without changing
+// anything. Moving the anchor never edits an entry — each keeps the ymd it
+// was written with — it only re-asks which sadhana-day "now" falls in.
+function dayNumberUnder(now, tz, hour){
+  const a = currentAttempt();
+  if(!a) return null;
+  const shifted = new Date(now.getTime() - (hour != null ? hour : S.dayStartHour)*3600000);
+  const n = daysBetween(a.startYMD, ymdIn(shifted, tz)) + 1;
+  return Number.isFinite(n) ? n : null;
+}
+
+// A shift forward is safe while it leaves today at most one day past the last
+// one recorded. Beyond that the router reads a gap and breaks the thread, so
+// the honest answer is to log today first rather than to move the anchor.
+function deviceTz(){
+  try{ return Intl.DateTimeFormat().resolvedOptions().timeZone || null; }
+  catch(e){ return null; }
+}
+
+// A break is the heaviest thing this app says. Before it says it, check the
+// one benign explanation: the anchor is still in a place you have left, and
+// moving it to where you actually are puts you back on the next day.
+function staleAnchor(now){
+  const tz = deviceTz();
+  if(!tz || tz === S.tz) return false;
+  const a = currentAttempt();
+  if(!a) return false;
+  return anchorShift(now, tz).safe;
+}
+
+function anchorShift(now, tz){
+  const a = currentAttempt();
+  const marked = a ? highestMarked(a) : 0;
+  const from = dayNumber(now);
+  const to = dayNumberUnder(now, tz);
+  const shifted = new Date(now.getTime() - S.dayStartHour*3600000);
+  return {from, to, marked, tz,
+          fromYMD: logicalYMD(now),
+          toYMD: ymdIn(shifted, tz),
+          safe: to != null && to >= 1 && to <= marked + 1,
+          same: to === from};
+}
+
+// An entry's date comes from the anchor it was written under; its time must
+// come from the same place, or the two disagree the moment you travel. The
+// anchor is stamped on each entry so history stays true after the anchor moves.
+function entryTime(e){
+  if(!e || !e.startedAt) return '';
+  try{
+    return new Date(e.startedAt).toLocaleTimeString([], {
+      hour:'numeric', minute:'2-digit', timeZone: e.tz || S.tz});
+  }catch(err){
+    return new Date(e.startedAt).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+  }
+}
+
+// Existing entries predate the stamp. They were all written under the anchor
+// in force right now, so recording it now is the only moment it is knowable.
+function stampEntryZones(){
+  if(!S || !S.attempts) return false;
+  let touched = false;
+  S.attempts.forEach(a => (a.entries || []).forEach(e => {
+    if(e && e.startedAt && !e.tz){ e.tz = S.tz; touched = true; }
+  }));
+  (S.completed || []).forEach(c => (c.attempts || []).forEach(a =>
+    (a.entries || []).forEach(e => {
+      if(e && e.startedAt && !e.tz){ e.tz = c.tz || S.tz; touched = true; }
+    })));
+  return touched;
+}
+
+function daysBetween(a,b){
+  return Math.round((Date.parse(b+'T12:00:00Z') - Date.parse(a+'T12:00:00Z'))/86400000);
+}
+function currentAttempt(){ return S.attempts[S.attempts.length-1] || null; }
+function dayNumber(now){
+  const a = currentAttempt(); if(!a) return 0;
+  const n = daysBetween(a.startYMD, logicalYMD(now)) + 1;
+  return Number.isFinite(n) ? n : null;   // null is falsy; NaN slips past < comparisons
+}
+
+// A record can only be as good as its start date. If one ever goes missing,
+// rebuild it from the earliest entry rather than rendering NaN at the user.
+function repairState(){
+  if(!S || !S.attempts) return;
+  let fixed = false;
+  S.attempts.forEach(a => {
+    if(a && (!a.startYMD || !Number.isFinite(Date.parse(a.startYMD + 'T12:00:00Z')))){
+      const days = (a.entries || []).map(e => e && e.ymd).filter(Boolean).sort();
+      a.startYMD = days[0] || S.startDate || nowYMD();
+      fixed = true;
+    }
+  });
+  if(fixed) save();
+}
+function highestMarked(a){
+  return a && a.entries.length ? Math.max.apply(null, a.entries.map(e=>e.day)) : 0;
+}
+// What the wall clock in `tz` reads at this instant, as an offset from UTC.
+function tzOffsetMs(date, tz){
+  const p = new Intl.DateTimeFormat('en-CA', {timeZone:tz, hour12:false,
+    year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', second:'2-digit'}).formatToParts(date);
+  const g = t => p.find(x => x.type === t).value;
+  const asUTC = Date.parse(g('year')+'-'+g('month')+'-'+g('day')+'T'+
+                           (g('hour')==='24'?'00':g('hour'))+':'+g('minute')+':'+g('second')+'Z');
+  return asUTC - date.getTime();
+}
+
+// The exact instant a sadhana-day opens: `hour` on `ymd`, in `tz`. Solved
+// rather than approximated, because the offset depends on the instant we are
+// solving for — twice around settles it, DST changes included.
+function boundaryInstant(ymd, hour, tz){
+  const wall = Date.parse(ymd + 'T00:00:00Z') + hour*3600000;
+  let guess = wall;
+  for(let i = 0; i < 2; i++) guess = wall - tzOffsetMs(new Date(guess), tz);
+  return guess;
+}
+
+// This used to parse the boundary on the device's own clock, which is only
+// right while the device and the anchor are in the same place. Travelling
+// put the countdown — and the logging grace window — hours out.
+function msUntilClose(now){
+  let t = boundaryInstant(addDays(logicalYMD(now), 1), S.dayStartHour, S.tz) - now.getTime();
+  // On a clocks-forward day the hour subtracted inside logicalYMD can land
+  // just before the boundary it names, which would report a day closing in
+  // no time at all. Roll on: a new day has in fact just opened.
+  if(t <= 0) t = boundaryInstant(addDays(logicalYMD(now), 2), S.dayStartHour, S.tz) - now.getTime();
+  return t;
+}
+function msSinceClose(now){
+  return 86400000 - msUntilClose(now);
+}
+function humanLeft(ms){
+  const h = Math.floor(ms/3600000), m = Math.floor(ms%3600000/60000);
+  if(h < 1) return m + (m===1?' minute':' minutes');
+  return h + (h===1?' hour':' hours') + ' and ' + m + (m===1?' minute':' minutes');
+}
+const NUMWORDS = ['zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten',
+  'Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen','Twenty',
+  'Twenty-one','Twenty-two','Twenty-three','Twenty-four','Twenty-five','Twenty-six','Twenty-seven',
+  'Twenty-eight','Twenty-nine','Thirty','Thirty-one','Thirty-two','Thirty-three','Thirty-four',
+  'Thirty-five','Thirty-six','Thirty-seven','Thirty-eight','Thirty-nine','Forty'];
+function numberWord(n){ return NUMWORDS[n] || String(n); }
+function hourText(h){ return h === 0 ? 'midnight' : h + ':00am'; }
+function fmtDate(ymd, opt){
+  const d = new Date(ymd+'T12:00:00');
+  return d.toLocaleDateString(undefined, opt || {weekday:'long',day:'numeric',month:'long'});
+}
+function addDays(ymd,n){
+  const d = new Date(Date.parse(ymd+'T12:00:00Z') + n*86400000);
+  return d.toISOString().slice(0,10);
+}
+function nowYMD(){ return ymdIn(new Date(), S ? S.tz : Intl.DateTimeFormat().resolvedOptions().timeZone); }
+
+/* ---------- svg ---------- */
+function lotusSVG(cls, size){
+  const P = [[0,33,10],[-32,29,9],[32,29,9],[-60,24,7.8],[60,24,7.8],[-86,17,6.2],[86,17,6.2]];
+  const paths = P.map(([a,L,w]) =>
+    `<path transform="rotate(${a})" d="M0,0 C${-w},${-0.38*L} ${-0.5*w},${-0.86*L} 0,${-L} C${0.5*w},${-0.86*L} ${w},${-0.38*L} 0,0"/>`
+  ).join('');
+  const h = Math.round(size*0.62);
+  return `<svg class="lotus ${cls||''}" width="${size}" height="${h}" viewBox="-42 -38 84 52" aria-hidden="true">
+    ${paths}<line x1="-17" y1="5" x2="17" y2="5"/></svg>`;
+}
+const ICON = {
+  share:`<svg width="20" height="20" viewBox="-12 -12 24 24" fill="none" stroke="#E8E4DA" stroke-width="1.5" stroke-linecap="round"><path d="M-6,-1 L-6,8 L6,8 L6,-1"/><path d="M-6,-1 L-2.6,-1 M2.6,-1 L6,-1"/><path d="M0,2 L0,-9 M-3.4,-5.4 L0,-9 L3.4,-5.4"/></svg>`,
+  kebab:`<svg width="20" height="20" viewBox="-12 -12 24 24" fill="#E8E4DA"><circle cx="0" cy="-5.5" r="1.6"/><circle cx="0" cy="0" r="1.6"/><circle cx="0" cy="5.5" r="1.6"/></svg>`,
+  kebab3:`<svg width="20" height="20" viewBox="-12 -12 24 24" fill="none" stroke="#E8E4DA" stroke-width="1.3"><circle cx="0" cy="0" r="10.5"/><circle cx="-4.6" cy="0" r="1.5" fill="#E8E4DA" stroke="none"/><circle cx="0" cy="0" r="1.5" fill="#E8E4DA" stroke="none"/><circle cx="4.6" cy="0" r="1.5" fill="#E8E4DA" stroke="none"/></svg>`,
+  plus:`<svg width="20" height="20" viewBox="-12 -12 24 24" fill="none" stroke="#E8E4DA" stroke-width="1.5" stroke-linecap="round"><rect x="-7" y="-7" width="14" height="14" rx="3.5"/><path d="M-3.6,0 H3.6 M0,-3.6 V3.6"/></svg>`,
+  star:`<svg width="20" height="20" viewBox="-12 -12 24 24" fill="none" stroke="#E8E4DA" stroke-width="1.4" stroke-linejoin="round"><path d="M0,-9 L2.6,-2.9 L9,-2.6 L4,1.6 L5.6,8 L0,4.4 L-5.6,8 L-4,1.6 L-9,-2.6 L-2.6,-2.9 Z"/></svg>`,
+  mic:`<svg width="17" height="17" viewBox="-10 -10 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="-2.4" y="-8" width="4.8" height="9.5" rx="2.4" fill="currentColor" stroke="none"/><path d="M-5.4,-0.5 A5.4,5.4 0 0 0 5.4,-0.5"/><path d="M0,5 V8 M-3.4,8 H3.4"/></svg>`,
+  lotus:`<svg width="21" height="21" viewBox="-40 -34 80 46" fill="#D9A441" stroke="#14162B" stroke-width="2">
+    <path transform="rotate(-86)" d="M0,0 C-6.2,-6.46 -3.1,-14.62 0,-17 C3.1,-14.62 6.2,-6.46 0,0"/>
+    <path transform="rotate(86)" d="M0,0 C-6.2,-6.46 -3.1,-14.62 0,-17 C3.1,-14.62 6.2,-6.46 0,0"/>
+    <path transform="rotate(-60)" d="M0,0 C-7.8,-9.12 -3.9,-20.64 0,-24 C3.9,-20.64 7.8,-9.12 0,0"/>
+    <path transform="rotate(60)" d="M0,0 C-7.8,-9.12 -3.9,-20.64 0,-24 C3.9,-20.64 7.8,-9.12 0,0"/>
+    <path transform="rotate(-32)" d="M0,0 C-9,-11.02 -4.5,-24.94 0,-29 C4.5,-24.94 9,-11.02 0,0"/>
+    <path transform="rotate(32)" d="M0,0 C-9,-11.02 -4.5,-24.94 0,-29 C4.5,-24.94 9,-11.02 0,0"/>
+    <path d="M0,0 C-10,-12.54 -5,-28.38 0,-33 C5,-28.38 10,-12.54 0,0"/></svg>`
+};
+
+/* ---------- band ---------- */
+function band(opts){
+  const o = Object.assign({done:0,today:0,ash:0,n:S?S.lengthDays:40}, opts||{});
+  if(o.n > 120){
+    const pct = Math.max(0, Math.min(100, o.done/o.n*100));
+    return `<div class="bar"><i style="width:${pct}%"></i></div>`;
+  }
+  const groups = [];
+  for(let g=0; g<Math.ceil(o.n/10); g++){
+    let d = '';
+    for(let i=1; i<=10; i++){
+      const nn = g*10+i;
+      if(nn > o.n) break;
+      let c = 'dot';
+      if(nn <= o.ash) c += ' ash';
+      else if(nn <= o.done) c += ' done';
+      else if(nn === o.today) c += ' now';
+      d += `<div class="${c}"></div>`;
+    }
+    groups.push(`<div class="grp">${d}</div>`);
+  }
+  const gap = o.n > 60 ? 'style="gap:5px"' : '';
+  return `<div class="band" ${gap}>${groups.join('')}</div>`;
+}
+
+/* ---------- helpers ---------- */
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function esc(s){ return String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function chipRow(words, sel, extra){
+  return `<div class="chips">` + words.map(w =>
+    `<button class="chip" data-word="${esc(w)}" aria-pressed="${w===sel}">${esc(w)}</button>`
+  ).join('') + (extra || '') + `</div>`;
+}
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function platform(){
+  const ua = navigator.userAgent;
+  if(/iPhone|iPad|iPod/.test(ua)) return 'ios';
+  if(/Android/.test(ua)) return 'android';
+  if(/Mobi/.test(ua)) return 'mobile';
+  return 'desktop';
+}
+
+/* ---------- router ---------- */
+let route = null;
+function go(r){ route = r; render(); window.scrollTo(0,0); }
+
+function render(){
+  if(!S){ S = blank(); }
+  const now = new Date();
+
+  if(route) return paint(route, now);
+
+  if(!S.installShown && !isStandalone()) return paint('install', now);
+  if(syncConfigured() && ((!authSettled && returningFromSignIn()) || (SYNC.pulling && !S.practice)))
+    return paint('authwait', now);
+  if(!S.practice && isStandalone() && syncConfigured() && !SYNC.on && !S.freshStart)
+    return paint('restore', now);
+  if(!S.practice) return paint('setup', now);
+  if(syncConfigured() && !SYNC.on && !S.syncOffered) return paint('signin', now);
+  if(!S.onboarded) return paint('ritual', now);
+
+  const a = currentAttempt();
+  if(!a) return paint('setup', now);
+
+  const day = dayNumber(now);
+  const marked = highestMarked(a);
+
+  if(marked >= S.lengthDays) return paint('complete', now);
+
+  // Travel first: if the anchor is stale, nothing was missed and the right
+  // screen is the one that moves it, not the one that ends the thread.
+  if(day > marked + 1 && !a.broken && !TRAVEL.dismissed && staleAnchor(now)){
+    if(TRAVEL.tz === null && !TRAVEL.touched) TRAVEL.tz = deviceTz();
+    return paint('travel', now);
+  }
+
+  // Then the logging grace. This routing line went missing in an earlier
+  // edit, so the screen existed but was never reached.
+  if(day === marked + 2 && !a.broken && a.askedYMD !== logicalYMD(now)
+     && msSinceClose(now) < LOG_GRACE_HOURS * 3600000)
+    return paint('yesterday', now);
+
+  if(day > marked + 1 && !a.broken) return paint('break', now);
+  if(a.broken) return paint('break', now);
+  if(!Number.isFinite(day) || day < 1) return paint('waiting', now);
+  if(marked >= day) return paint('thread', now);
+  return paint('today', now);
+}
+
+function paint(view, now){
+  const a = currentAttempt();
+  const day = a ? dayNumber(now) : 0;
+  const marked = a ? highestMarked(a) : 0;
+  let h = '';
+
+  /* ---- WAITING ON SIGN-IN ---- */
+  if(view === 'authwait'){
+    h = band({done:0,n:S.lengthDays||40}) +
+      `<div class="grow"></div>
+       <div class="center">${lotusSVG('gold draw',86)}
+         <p class="sm" style="margin-top:22px">${SYNC.pulling ? 'Restoring your record…' : 'Signing you in…'}</p></div>
+       <div class="grow"></div>`;
+  }
+
+  /* ---- RESTORE ---- */
+  if(view === 'restore'){
+    h = band({done:0,n:40}) +
+      `<div style="padding-top:26px">${lotusSVG('draw',86)}<div class="wordmark">Sadhana Tracker</div></div>
+      <div class="hr"></div>
+      <h2>Sign in<br>to continue.</h2>
+      <p>Use the same Google account and your record comes with you — the practice, the dates, and every day you have kept.</p>
+      ${SYNC.err? `<p class="sm" style="color:var(--amrit)">${esc(SYNC.err)}</p>`:''}
+      <div class="grow"></div>
+      <button class="btn" id="sync-in" ${(SYNC.busy||!SYNC.fb)?'disabled':''}>${SYNC.busy?'Signing in…':(SYNC.fb?'Continue with Google':'Preparing…')}</button>
+      <button class="btn text" id="fresh-start">Start a new practice instead</button>`;
+  }
+
+  /* ---- SETUP ---- */
+  if(view === 'setup'){
+    h = band({done:0,n:S.lengthDays}) +
+      `<div style="padding-top:26px">${lotusSVG('draw',86)}<div class="wordmark">Sadhana Tracker</div></div>
+      <div class="hr"></div>
+      <h2>What are you<br>practicing?</h2>
+      <div style="margin-top:26px"><div class="lab">Practice</div>
+        <input type="text" id="f-practice" name="p${Date.now()}" placeholder="Type the name of your practice"
+               value="${esc(S.practice)}" autocomplete="off" autocorrect="off"
+               spellcheck="false" autocapitalize="words" enterkeyhint="done"></div>
+      ${suggestionsHTML()}
+      <div style="margin-top:26px"><div class="lab">Length</div>
+        <div class="chips">${[40,90,120,1000].map(n=>`<button class="chip" data-len="${n}" aria-pressed="${S.lengthDays===n}">${n} days</button>`).join('')}</div>
+      </div>
+      <div style="margin-top:26px"><div class="lab">First day</div>
+        <input type="date" id="f-start" value="${S.startDate || addDays(nowYMD(),1)}"></div>
+      <div class="grow"></div>
+      <button class="btn" id="to-rules">Begin</button>
+      ${(S.completed||[]).length ? `<button class="btn text" id="to-shelf">${numberWord((S.completed||[]).length)} practice${(S.completed||[]).length===1?'':'s'} kept</button>` : ''}
+      <button class="btn text" id="to-import">Already have a record? Restore it</button>
+      ${(syncConfigured() && !SYNC.on && !S.practice)
+        ? `<button class="btn text" id="to-restore">Already practising? Restore your record</button>` : ''}`;
+  }
+
+  /* ---- RULES ---- */
+  else if(view === 'rules'){
+    const start = S.startDate || addDays(nowYMD(),1);
+    const end = addDays(start, S.lengthDays-1);
+    // Three sentences, positive where it can be. Someone reads this once,
+    // standing up, deciding whether to commit — not studying terms.
+    h = band({done:0,n:S.lengthDays}) +
+      `<div class="lab" style="padding-top:26px">Before you begin</div>
+      <h2>How this works</h2>
+
+      <div style="margin-top:28px">
+        <div class="stat"><span class="k">Begins</span><span class="v">${fmtDate(start)}</span></div>
+        <div class="stat"><span class="k">Ends</span><span class="v">${fmtDate(end)}</span></div>
+        <div class="stat" style="border-bottom:1px solid var(--horizon)"></div>
+      </div>
+
+      <p style="font-size:18px;color:var(--moon);margin-top:26px">Practise every day for ${S.lengthDays} days.</p>
+      <p style="font-size:18px;color:var(--moon)">Open the app before and after. It takes ten seconds.</p>
+      <p style="font-size:18px;color:var(--moon)">Miss a day and you begin again at one.</p>
+
+      <p class="sm" style="margin-top:24px">If you practised and forgot to open the app, you can mark it the next morning. Nothing will remind you — that part is yours.</p>
+
+      <div style="margin-top:26px"><div class="lab" style="margin-bottom:10px">A day begins at</div>
+        <select id="f-hour">
+          ${[0,2,3,4,5].map(hh=>`<option value="${hh}" ${hh===S.dayStartHour?'selected':''}>${hh===0?'12:00 am · midnight':hh+':00 am'+(hh===3?' · amrit vela':'')}</option>`).join('')}
+        </select>
+        <p class="sm">So a pre-dawn practice counts for the day it begins.</p>
+      </div>
+
+      <div class="grow"></div>
+      <button class="hold" id="hold">${holdMarkup('I understand')}</button>
+      <button class="btn text" id="back-setup">Back</button>`;
+  }
+
+  /* ---- INSTALL ---- */
+  else if(view === 'install'){
+    const p = platform();
+    if(p === 'desktop'){
+      h = band({done:0,n:S.lengthDays}) +
+        `<div class="lab" style="padding-top:22px">One more step</div>
+        <h2>Bookmark it<br>instead.</h2>
+        <p>You are on a computer. The practice itself belongs on your phone, where you will be at 4am. Here, a bookmark is enough for reading the thread.</p>
+        <div class="hr"></div><div class="eyebrow">Save this page</div>
+        <p><span class="kc">${navigator.platform.indexOf('Mac')>=0?'Cmd':'Ctrl'}</span> <span class="kc">D</span></p>
+        <div class="step" style="margin-top:22px">${ICON.star}<div><div class="t">Or use the bookmark star in the address bar</div></div></div>
+        <div class="hr"></div><div class="lab">On your phone</div>
+        <p class="sm">Open the same address and the home screen instructions appear there.</p>
+        <div class="grow"></div>
+        <button class="btn" id="installed">Continue</button>`;
+    } else {
+      const ios = p !== 'android';
+      const iosSteps = `
+          <div class="step">${ICON.kebab3}<div><div class="t">Tap &bull;&bull;&bull; beside the address bar</div><div class="b">On older versions of Safari the share arrow sits in the toolbar directly.</div></div></div>
+          <div class="step">${ICON.share}<div><div class="t">Choose Share</div></div></div>
+          <div class="step">${ICON.plus}<div><div class="t">Choose Add to Home Screen</div></div></div>`;
+      const androidSteps = `
+          <div class="step">${ICON.kebab}<div><div class="t">Open the menu</div></div></div>
+          <div class="step">${ICON.plus}<div><div class="t">Choose Install app</div></div></div>`;
+      h = band({done:0,n:40}) +
+        `<div style="padding-top:20px;text-align:center">
+           <img src="/icon-192.png" alt="" width="76" height="76" style="border-radius:17px;display:block;margin:0 auto">
+           <div class="wordmark" style="margin-top:14px">Sadhana Tracker</div>
+         </div>
+        <div class="hr"></div>
+        <h2>Install it<br>before you begin.</h2>
+        <p>There are no accounts and no notifications. Your practice is kept on this phone and nowhere else — so the app needs to live on your home screen, where phone browsers cannot clear it and where you will actually see it before dawn.</p>
+        <div class="hr"></div>
+        <div class="eyebrow">${ios?'iPhone · Safari':'Android · Chrome'}</div>
+        <div class="steps">
+          ${ios ? iosSteps : androidSteps}
+          <div class="step">${ICON.lotus}<div><div class="t">Open the lotus icon and set up there</div><div class="b">Nothing has been entered yet, so there is nothing to carry across.</div></div></div>
+        </div>
+        <div class="grow"></div>
+        <button class="btn text" id="installed">Continue in this browser instead</button>`;
+    }
+  }
+
+  /* ---- RITUAL ---- */
+  else if(view === 'ritual'){
+    // Before, Practise, After orders itself — the numbers were noise. The
+    // rules screen already covered the ten seconds, so this teaches the
+    // rhythm and nothing else.
+    h = band({done:0,n:S.lengthDays}) +
+      `<div class="lab" style="padding-top:26px">The daily ritual</div>
+      <h2>Three moments</h2>
+
+      <div style="margin-top:40px">
+        <div class="beat"><div class="bt">Before</div><div class="bb">Name how you arrive.</div></div>
+        <div class="beat"><div class="bt">Practise</div><div class="bb">The timer is for the record, not for you.</div></div>
+        <div class="beat"><div class="bt">After</div><div class="bb">Name how you left. Keep a line, if there is one.</div></div>
+      </div>
+
+      <div class="hr" style="margin-top:38px"></div>
+      <p style="font-style:italic;color:var(--moon);font-size:18px">Nothing will remind you. Remembering is the first part of the practice.</p>
+
+      <div class="grow"></div>
+      <button class="hold" id="hold-day-one">${holdMarkup('Begin day one')}</button>`;
+  }
+
+  /* ---- WAITING (starts in future) ---- */
+  else if(view === 'waiting'){
+    h = band({done:0,today:0,n:S.lengthDays}) +
+      `<div class="lab" style="padding-top:22px">${esc(S.practice)}</div>
+      <h1>Begins<br><em>${fmtDate(a.startYMD)}</em>.</h1>
+      <p>Nothing to do until then. Day one opens at ${hourText(S.dayStartHour)} that morning.</p>
+      <div class="grow"></div>
+      <button class="btn quiet" id="see-thread">Read the thread</button>`;
+  }
+
+  /* ---- TODAY (unmarked) ---- */
+  else if(view === 'today'){
+    // The day number is the hero here and becomes the lotus once the day is
+    // kept — the same shape, arrived at. Nothing on this screen names what
+    // could be lost; the practitioner already knows the rule they agreed to.
+    const msLeft = msUntilClose(now);
+    const late = msLeft < 3 * 3600000;
+    const behind = marked;
+    const line = day === 1
+      ? 'The container opens today.'
+      : (day >= S.lengthDays
+          ? 'The last day of the container.'
+          : numberWord(behind) + ' day' + (behind === 1 ? '' : 's') + ' behind you.');
+    h = band({done:marked,today:day,n:S.lengthDays}) +
+      `<div class="lab" style="padding-top:26px">${esc(S.practice)} · ${fmtDate(logicalYMD(now),{weekday:'long'})}</div>
+      <div class="grow"></div>
+      <div class="center">
+        <div class="dayno">${day}</div>
+        <div class="dayof">of ${S.lengthDays}</div>
+        <p style="margin-top:26px;font-size:19px;color:var(--moon)">${line}</p>
+        ${late ? `<p class="sm">The day turns at ${hourText(S.dayStartHour)}. A little time remains.</p>` : ''}
+      </div>
+      <div class="grow"></div>
+      <button class="btn" id="to-before">Begin today's practice</button>
+      <button class="btn text" id="to-after">I practised earlier</button>`;
+  }
+
+  /* ---- BEFORE ---- */
+  else if(view === 'before'){
+    const sel = S.draft && S.draft.before;
+    h = band({done:marked,today:day,n:S.lengthDays}) +
+      `<div class="lab" style="padding-top:22px">Day ${day} · ${esc(S.practice)}</div>
+      <h1>How are you<br>arriving?</h1>
+      ${chipRow(S.words, sel, `<button class="chip dash" id="add-word">+ Other</button>`)}
+      <div class="grow"></div>
+      <button class="btn" id="start-sit" ${sel?'':'disabled'}>Start practising</button>
+      <button class="btn text" id="skip-timer">Log it afterwards instead</button>`;
+  }
+
+  /* ---- SITTING ---- */
+  else if(view === 'sitting'){
+    h = band({done:marked,today:day,n:S.lengthDays}) +
+      `<div class="lab center" style="padding-top:22px">Day ${day} · practising</div>
+      <div class="grow"></div>
+      <div class="center">
+        <div id="clock" style="font-size:46px;letter-spacing:.02em">0:00</div>
+        <p class="sm">Started at ${entryTime({startedAt:S.draft.startedAt, tz:S.tz})}</p>
+      </div>
+      <div class="grow"></div>
+      <button class="btn" id="end-sit">Finished</button>`;
+  }
+
+  /* ---- AFTER ---- */
+  else if(view === 'after'){
+    const d = S.draft || {};
+    const mins = d.minutes ? d.minutes + ' min' : 'not timed';
+    const t = d.startedAt ? entryTime({startedAt:d.startedAt, tz:S.tz}) : '';
+    h = band({done:marked,today:day,n:S.lengthDays}) +
+      `<div class="lab" style="padding-top:22px">Day ${day}${t?' · '+t:''} · ${mins}</div>
+      <h1>And now?</h1>
+      ${chipRow(S.words, d.after, `<button class="chip dash" id="add-word">+ Other</button>`)}
+      <div style="margin-top:34px"><div class="lab">Anything worth keeping</div>
+        <div class="row"><textarea id="f-note" rows="2" placeholder="Speak or type a line…">${esc(d.note)}</textarea>
+        <button class="mic" id="mic" aria-label="Dictate">${ICON.mic}</button></div></div>
+      <div class="grow"></div>
+      <button class="btn" id="save-day" ${d.after?'':'disabled'}>Save day ${day}</button>`;
+  }
+
+  /* ---- KEPT ---- */
+  else if(view === 'kept'){
+    const ahead = S.lengthDays - marked;
+    h = band({done:marked,today:marked+1,n:S.lengthDays}) +
+      `<div class="grow"></div>
+      <div class="center">
+        <div style="height:96px;display:flex;align-items:center;justify-content:center">${lotusSVG('gold draw',104)}</div>
+        <div class="dayof" style="color:var(--amrit)">Day ${marked} of ${S.lengthDays}</div>
+        <p style="margin-top:26px;font-size:19px;color:var(--moon)">${
+          ahead > 0
+            ? numberWord(marked) + ' day' + (marked === 1 ? '' : 's') + ' behind you.'
+            : 'The container is complete.'}</p>
+        ${ahead > 0 ? `<p class="sm">${numberWord(ahead)} ahead.</p>` : ''}</div>
+      <div class="grow"></div>
+      ${(syncConfigured() && !SYNC.on && !S.syncOffered)
+        ? `<button class="btn quiet" id="offer-backup">Keep a backup of this</button>
+           <button class="btn text" id="see-thread">Read the thread</button>`
+        : `<button class="btn quiet" id="see-thread">Read the thread</button>`}`;
+  }
+
+  /* ---- SIGN IN ---- */
+  else if(view === 'signin'){
+    const signedIn = !!SYNC.user;
+    h = band({done:marked,today:marked<day?day:0,n:S.lengthDays}) +
+      `<div class="lab" style="padding-top:22px">Optional</div>
+      <h2>Your record,<br>on any screen.</h2>` +
+      (signedIn ? `
+        <p>Backed up to <b style="color:var(--moon);font-weight:400">${esc(SYNC.user.email||'your account')}</b>. Your record will restore on a new phone, and you can read the thread on a computer at this same address.</p>
+        ${SYNC.err? `<p class="sm" style="color:var(--amrit)">${esc(SYNC.err)}</p>`:''}
+        <div class="grow"></div>
+        ${S.onboarded
+          ? `<button class="btn quiet" id="sync-out">Sign out</button>
+             <button class="btn text" id="sync-back">Back</button>`
+          : `<button class="btn" id="sync-done">Continue</button>`}`
+      : `
+        <p>Everything so far is stored on this phone alone. Sign in and it is also kept in the cloud — which is what lets your record follow you into the installed app, onto a laptop, or onto a new phone.</p>
+        ${SYNC.err? `<p class="sm" style="color:var(--amrit)">${esc(SYNC.err)}</p>`:''}
+        <button class="btn quiet" id="sync-in" ${(SYNC.busy||!SYNC.fb)?'disabled':''}>${SYNC.busy?'Signing in…':(SYNC.fb?'Continue with Google':'Preparing…')}</button>
+        <div class="hr"></div>
+        <div class="eyebrow">What is stored</div>
+        <p class="sm">The practice name, your dates, and what you wrote. Nothing else. No contacts, no location, no analytics.</p>
+        <p style="font-style:italic;color:var(--moon)">&bull;&nbsp; The count is unaffected either way. Signing in never changes a day.</p>
+        <div class="grow"></div>
+        <button class="btn text" id="sync-back">Not now</button>`);
+  }
+
+  /* ---- THREAD ---- */
+  else if(view === 'thread'){
+    h = band({done:marked,today:marked<day?day:0,ash:0,n:S.lengthDays}) +
+      `<div class="lab" style="padding:22px 0 8px">${esc(S.practice)} · day ${Math.min(day,S.lengthDays)} of ${S.lengthDays}</div>` +
+      threadHTML() +
+      (syncConfigured() ? `<button class="btn text" id="to-signin" style="margin-top:30px">Backup · ${SYNC.on?'on':'off'}</button>` : '') +
+      `<button class="btn quiet" id="share-card" style="margin-top:30px">Share your progress</button>` +
+      `<button class="btn text" id="export" style="margin-top:8px">Export a copy</button>` +
+      ((S.completed||[]).length ? `<button class="btn text" id="to-shelf" style="margin-top:4px">Practices kept</button>` : '') +
+      `<button class="btn text" id="to-import" style="margin-top:4px">Restore from a file</button>` +
+      `<button class="btn text" id="to-travel" style="margin-top:4px">Travelling</button>` +
+      `<button class="btn text" id="diag" style="margin-top:4px">Check my record</button>` +
+      (isStandalone() ? '' : `<button class="btn text" id="to-install" style="margin-top:4px">Add to home screen</button>`) +
+      `<button class="btn text" id="reset-all" style="margin-top:4px">Settings</button>`;
+  }
+
+  /* ---- TRAVELLING ---- */
+  else if(view === 'travel'){
+    const here = deviceTz();
+    // Arrived here because the app was about to call a travelled day a break.
+    const rescue = !!(a && day > marked + 1 && !a.broken && staleAnchor(now));
+    const opts = [];
+    if(here && here !== S.tz) opts.push(here);
+    ['America/Los_Angeles','America/New_York','Europe/London','Europe/Berlin',
+     'Asia/Kolkata','Asia/Tokyo','Australia/Sydney']
+      .forEach(t => { if(t !== S.tz && opts.indexOf(t) < 0) opts.push(t); });
+
+    const pending = TRAVEL.tz ? anchorShift(now, TRAVEL.tz) : null;
+    h = band({done:marked,today:day,n:S.lengthDays}) +
+      (rescue
+        ? `<div class="lab" style="padding-top:26px">Before anything is counted missed</div>
+           <h2>Your anchor is<br>still away.</h2>
+           <p>It is <b style="color:var(--moon);font-weight:400">${fmtDate(logicalYMD(now),{weekday:'long',day:'numeric',month:'short'})}</b> in ${esc(S.tz.split('/').pop().replace(/_/g,' '))}, which is why the app thought a day had passed. Where you are now it is still ${esc(fmtDate(ymdIn(new Date(now.getTime() - S.dayStartHour*3600000), here),{weekday:'long',day:'numeric',month:'short'}))}.</p>
+           <p style="font-style:italic;color:var(--moon)">&bull;&nbsp; Nothing has been missed. Move the anchor and today is yours to practise.</p>`
+        : `<div class="lab" style="padding-top:26px">Travelling</div>
+           <h2>Where the day<br>begins</h2>
+           <p>Your container is anchored to one place, so crossing time zones cannot skip a day or double one. If you have moved for a while, move the anchor with you.</p>`) +
+
+      `<div style="margin-top:26px">
+        <div class="stat"><span class="k">Anchored to</span><span class="v">${esc(S.tz.split('/').pop().replace(/_/g,' '))}</span></div>
+        <div class="stat"><span class="k">Today, there</span><span class="v">${fmtDate(logicalYMD(now),{weekday:'long',day:'numeric',month:'short'})}</span></div>
+        <div class="stat"><span class="k">Day</span><span class="v gold">${day} of ${S.lengthDays}</span></div>
+        <div class="stat" style="border-bottom:1px solid var(--horizon)"></div>
+      </div>
+
+      <div class="lab" style="margin-top:28px;margin-bottom:10px">Move the anchor to</div>
+      <select id="f-tz">
+        <option value="">Choose a place</option>
+        ${opts.map(t => `<option value="${t}" ${TRAVEL.tz===t?'selected':''}>${esc(t.split('/').pop().replace(/_/g,' '))}${t===here?' · where you are now':''}</option>`).join('')}
+      </select>
+
+      ${pending ? (pending.same
+        ? `<p class="sm" style="margin-top:18px">That is the same sadhana-day you are already on. Nothing would change.</p>`
+        : (pending.safe
+          ? `<div class="note" style="margin-top:18px">
+               <div class="eyebrow">What changes</div>
+               <p style="color:var(--moon);margin-top:10px">Today stops being ${fmtDate(pending.fromYMD,{weekday:'long',day:'numeric',month:'short'})} and becomes ${fmtDate(pending.toYMD,{weekday:'long',day:'numeric',month:'short'})}.</p>
+               <p style="color:var(--moon)">Your next practice is day ${pending.to}${pending.to === pending.marked + 1 ? '' : ', the one after day ' + pending.marked}.</p>
+               <div class="hr" style="margin:16px 0"></div>
+               <div class="eyebrow">What does not</div>
+               <p class="sm">Your ${numberWord(pending.marked).toLowerCase()} recorded days keep the numbers and dates they were given. Day ${pending.marked} stays day ${pending.marked}. Nothing in the thread is renumbered or rewritten.</p>
+             </div>`
+          : `<div class="note" style="margin-top:18px">
+               <div class="eyebrow" style="color:var(--amrit)">Not yet</div>
+               <p style="color:var(--moon);margin-top:10px">Today would jump to day ${pending.to}, which is ${pending.to - pending.marked} days past the last one you recorded. The thread would read that as a gap.</p>
+               <p class="sm">Record today's practice first, then move the anchor.</p>
+             </div>`))
+        : ''}` +
+
+      `<div class="grow"></div>` +
+      (pending && pending.safe && !pending.same
+        ? `<button class="btn" id="tz-apply">Move the anchor</button>` : '') +
+      (rescue
+        ? `<button class="btn text" id="travel-nope">No — I did miss a day</button>`
+        : `<button class="btn text" id="travel-back">Back</button>`);
+  }
+
+  /* ---- YESTERDAY ---- */
+  else if(view === 'yesterday'){
+    const yday = addDays(logicalYMD(now), -1);
+    h = band({done:marked,today:0,n:S.lengthDays}) +
+      `<div class="lab" style="padding-top:22px">${fmtDate(yday)}</div>
+      <h1>Did you practise<br>yesterday?</h1>
+      <p>Day ${marked + 1} is not yet recorded. If you practised and simply did not open the app, mark it now and the thread continues.</p>
+      <p style="font-style:italic;color:var(--moon)">&bull;&nbsp; Only you know. The count is worth nothing if this answer is not true.</p>
+      <div class="grow"></div>
+      <button class="btn" id="yday-yes">Yes — I practised</button>
+      <button class="btn text" id="yday-no">No — I missed it</button>`;
+  }
+
+  /* ---- IMPORT ---- */
+  else if(view === 'import'){
+    const f = IMPORT.summary;
+    const mine = S.practice ? highestMarked(currentAttempt() || {entries:[]}) : 0;
+    h = band({done:marked,today:0,n:S.lengthDays}) +
+      `<div class="lab" style="padding-top:22px">Restore</div>
+      <h2>Bring a record<br>back in.</h2>
+      <p>Choose an exported file. Days already here are kept; anything missing is added. Nothing is overwritten.</p>
+      ${IMPORT.err ? `<p class="sm" style="color:var(--amrit)">${esc(IMPORT.err)}</p>` : ''}
+      ${f ? `<div class="note">
+          <div class="eyebrow">Found in that file</div>
+          <p style="color:var(--moon);margin-top:10px">${esc(f.practice)}</p>
+          <p class="sm">${f.days} day${f.days===1?'':'s'} recorded · reached day ${f.best} of ${f.length}${f.attempts>1?' · '+f.attempts+' attempts':''}</p>
+        </div>` : ''}
+      <div style="margin-top:22px">
+        <label class="btn quiet" for="f-import" style="display:block">Choose a file</label>
+        <input type="file" id="f-import" accept=".txt,text/plain" style="display:none">
+      </div>
+      <div class="grow"></div>
+      ${f ? `<button class="btn" id="import-go">${mine ? 'Merge into my record' : 'Restore this record'}</button>` : ''}
+      <button class="btn text" id="import-back">Back</button>`;
+  }
+
+  /* ---- BREAK ---- */
+  else if(view === 'break'){
+    const missed = marked + 1;
+    h = band({done:0,ash:marked,n:S.lengthDays}) +
+      `<div class="lab" style="padding-top:22px">${fmtDate(logicalYMD(now))} · ${hourText(S.dayStartHour)} has passed</div>
+      <h2>Day ${missed}<br>went unrecorded.</h2>
+      <div class="sutra"><div class="eyebrow">Yoga Sutra I.14</div>
+        <div class="tl">sa tu dirgha-kala nairantarya satkara asevito dridha-bhumih</div>
+        <div class="en">Practice becomes firm ground when it is tended a long while, without a gap, and with care.</div></div>
+      <p>Nairantarya is the middle condition, and it is the one that broke. The count returns to day one. Nothing you wrote is deleted.</p>
+      <div style="margin-top:26px"><div class="lab">What happened · optional</div>
+        ${chipRow(OBSTACLES, a.obstacle)}
+      </div>
+      <div class="grow"></div>
+      <button class="btn" id="again-today">Begin again today</button>
+      <button class="btn text" id="again-tomorrow">Begin again tomorrow</button>
+      ${(deviceTz() && deviceTz() !== S.tz)
+        ? `<button class="btn text" id="to-travel" style="margin-top:14px">Your anchor is in ${esc(S.tz.split('/').pop().replace(/_/g,' '))} — check it</button>`
+        : ''}`;
+  }
+
+  /* ---- SHELF ---- */
+  else if(view === 'shelf'){
+    const done = (S.completed || []).slice().reverse();
+    h = band({done:0,n:40}) +
+      `<div class="lab" style="padding-top:26px">Kept</div>
+      <h2>Practices<br>completed</h2>
+      <div style="margin-top:34px">` +
+      done.map((c, i) => `
+        <div class="kept" data-kept="${done.length - 1 - i}">
+          <div class="keptlotus">${lotusSVG('solid', 34)}</div>
+          <div class="keptbody">
+            <div class="keptname">${esc(c.practice)}</div>
+            <div class="keptmeta">${c.lengthDays} days · ${c.attempts.length === 1 ? 'one attempt' : numberWord(c.attempts.length).toLowerCase() + ' attempts'}</div>
+          </div>
+          <div class="keptdate">${fmtDate(c.startYMD,{day:'numeric',month:'short'})} — ${fmtDate(c.endYMD,{day:'numeric',month:'short',year:'numeric'})}</div>
+        </div>`).join('') +
+      `</div>
+      <p class="sm" style="margin-top:22px">${numberWord(done.length)} container${done.length===1?'':'s'} held. Every entry is kept in full.</p>
+      <div class="grow"></div>
+      <button class="btn quiet" id="shelf-back">Back</button>`;
+  }
+
+  /* ---- KEPT THREAD ---- */
+  else if(view === 'kept-thread'){
+    const c = (S.completed || [])[S.view];
+    h = band({done:c.lengthDays,n:c.lengthDays}) +
+      `<div class="lab" style="padding-top:26px">${fmtDate(c.startYMD,{day:'numeric',month:'long'})} — ${fmtDate(c.endYMD,{day:'numeric',month:'long',year:'numeric'})}</div>
+      <h2>${esc(c.practice)}</h2>
+      <div style="margin-top:20px">
+        <div class="stat"><span class="k">Days kept</span><span class="v gold">${c.lengthDays} of ${c.lengthDays}</span></div>
+        <div class="stat"><span class="k">Time sat</span><span class="v">${c.stats.total}</span></div>
+        <div class="stat"><span class="k">Arrived most often</span><span class="v">${c.stats.before}</span></div>
+        <div class="stat"><span class="k">Left most often</span><span class="v gold">${c.stats.after}</span></div>
+        <div class="stat" style="border-bottom:1px solid var(--horizon)"></div>
+      </div>
+      <div style="margin-top:26px">${threadHTML(c.attempts)}</div>
+      <button class="btn quiet" id="shelf-back2" style="margin-top:30px">Back</button>`;
+  }
+
+  /* ---- COMPLETE ---- */
+  else if(view === 'complete'){
+    const st = stats(a);
+    h = band({done:S.lengthDays,n:S.lengthDays}) +
+      `<div style="padding-top:26px">${lotusSVG('solid',80)}</div>
+      <div class="lab center" style="margin-top:20px">Complete · ${fmtDate(a.startYMD,{day:'numeric',month:'short'})} — ${fmtDate(addDays(a.startYMD,S.lengthDays-1),{day:'numeric',month:'short'})}</div>
+      <h2 class="center" style="margin-top:10px">${esc(S.practice)}</h2>
+      <div style="margin-top:26px">
+        <div class="stat"><span class="k">Days kept</span><span class="v gold">${S.lengthDays} of ${S.lengthDays}</span></div>
+        <div class="stat"><span class="k">Attempts</span><span class="v">${S.attempts.length}</span></div>
+        <div class="stat"><span class="k">Usual hour</span><span class="v">${st.hour}</span></div>
+        <div class="stat"><span class="k">Time sat</span><span class="v">${st.total}</span></div>
+        <div class="stat"><span class="k">Arrived most often</span><span class="v">${st.before}</span></div>
+        <div class="stat"><span class="k">Left most often</span><span class="v gold">${st.after}</span></div>
+        <div class="stat" style="border-bottom:1px solid var(--horizon)"></div>
+      </div>
+      <button class="btn" id="begin-next">Begin another practice</button>
+      <button class="btn text" id="see-thread">Read all ${S.lengthDays} days</button>
+      <button class="btn text" id="share-card">Share your ${numberWord(S.lengthDays).toLowerCase()} days</button>
+      <button class="btn text" id="export">Export everything</button>
+      ${(S.completed||[]).length ? `<button class="btn text" id="to-shelf">Practices kept</button>` : ''}`;
+  }
+
+  if((view === 'signin' || view === 'restore') && syncConfigured() && !SYNC.fb){
+    syncInit().then(()=>render()).catch(()=>{});
+  }
+  app.innerHTML = h;
+  wire(view, now);
+}
+
+/* ---------- thread ---------- */
+function threadHTML(attempts){
+  const list = attempts || S.attempts;
+  let out = '';
+  for(let i = list.length-1; i >= 0; i--){
+    const at = list[i];
+    const past = i < list.length-1;
+    if(past){
+      out += `<div class="divider"><span>Attempt ${i+1} · reached day ${highestMarked(at)}</span><span>${esc(at.obstacle||'')}</span></div>`;
+    }
+    const es = at.entries.slice().sort((x,y)=>y.day-x.day);
+    if(!es.length && !past) out += `<p class="sm">Nothing recorded yet.</p>`;
+    out += es.map(e => `
+      <div class="entry ${past?'past':''}">
+        <div class="emeta"><span><b>Day ${e.day}</b> · ${fmtDate(e.ymd,{weekday:'short'})}</span>
+        <span>${entryTime(e)}${e.minutes? ' · '+e.minutes+'m':''}</span></div>
+        <div class="shift">${e.loggedLate && !e.before
+            ? 'Practised · logged the next day'
+            : esc(e.before||'—') + '<span>&rarr;</span>' + esc(e.after||'—')}</div>
+        ${e.note? `<div class="etext">&ldquo;${esc(e.note)}&rdquo;</div>`:''}
+      </div>`).join('');
+  }
+  return out;
+}
+// A finished container is archived whole: its practice, its dates, every
+// attempt and every entry. The shelf reads from this, and nothing here is
+// ever rewritten afterwards.
+function archiveCurrent(){
+  const a = currentAttempt();
+  if(!a) return null;
+  const rec = {
+    practice: S.practice,
+    lengthDays: S.lengthDays,
+    startYMD: S.attempts[0].startYMD,
+    endYMD: addDays(a.startYMD, S.lengthDays - 1),
+    attempts: JSON.parse(JSON.stringify(S.attempts)),
+    tz: S.tz,
+    stats: stats(a),
+    completedAt: Date.now()
+  };
+  S.completed = (S.completed || []).concat([rec]);
+  return rec;
+}
+
+function beginAnother(){
+  archiveCurrent();
+  // keep the vocabulary and the settings; clear the practice itself
+  const keep = {words: S.words.slice(), dayStartHour: S.dayStartHour, tz: S.tz,
+                completed: S.completed, installShown: true, syncOffered: S.syncOffered};
+  S = Object.assign(blank(), keep);
+  save();
+  route = null; render();
+}
+
+function stats(a){
+  const es = a.entries;
+  const mode = k => {
+    const c = {}; es.forEach(e=>{ if(e[k]) c[e[k]]=(c[e[k]]||0)+1; });
+    const best = Object.keys(c).sort((x,y)=>c[y]-c[x])[0];
+    return best || '—';
+  };
+  const mins = es.reduce((s,e)=>s+(e.minutes||0),0);
+  const hrs = Math.floor(mins/60);
+  const times = es.filter(e=>e.startedAt).map(e=>new Date(e.startedAt));
+  let hour = '—';
+  if(times.length){
+    const avg = times.reduce((s,d)=>s+d.getHours()*60+d.getMinutes(),0)/times.length;
+    const hh = Math.floor(avg/60), mm = Math.round(avg%60);
+    hour = ((hh%12)||12)+':'+String(mm).padStart(2,'0')+(hh<12?'am':'pm');
+  }
+  return {hour, total: hrs+'h '+(mins%60)+'m', before: mode('before'), after: mode('after')};
+}
+
+/* ---------- wiring ---------- */
+function wire(view, now){
+  const on = (sel, ev, fn) => { const el = $(sel); if(el) el.addEventListener(ev, fn); };
+  const a = currentAttempt();
+  const day = a ? dayNumber(now) : 0;
+
+  document.querySelectorAll('.chip[data-practice]').forEach(b=>b.addEventListener('click',()=>{
+    const name = b.dataset.practice;
+    const f = $('#f-practice');
+    const already = f.value.trim() === name;
+    f.value = already ? '' : name;            // tap again to clear and type your own
+    S.practice = f.value;
+    document.querySelectorAll('.chip[data-practice]').forEach(o =>
+      o.setAttribute('aria-pressed', String(!already && o.dataset.practice === name)));
+  }));
+  document.querySelectorAll('.chip[data-len]').forEach(b=>b.addEventListener('click',()=>{
+    S.lengthDays = +b.dataset.len; S.practice = $('#f-practice').value; save(); go('setup');
+  }));
+  document.querySelectorAll('.chip[data-word]').forEach(b=>b.addEventListener('click',()=>{
+    const w = b.dataset.word;
+    if(view === 'break'){ a.obstacle = (a.obstacle===w? null : w); save(); go('break'); return; }
+    S.draft = S.draft || {};
+    if(view === 'before') S.draft.before = w; else S.draft.after = w;
+    save(); go(view);
+  }));
+
+  on('#to-rules','click',()=>{
+    const p = $('#f-practice').value.trim();
+    if(!p){ toast('Name the practice first'); return; }
+    S.practice = p; S.startDate = $('#f-start').value || addDays(nowYMD(),1); save(); go('rules');
+  });
+  on('#back-setup','click',()=>go('setup'));
+  on('#f-hour','change',e=>{ S.dayStartHour = +e.target.value; save(); });
+  on('#installed','click',()=>{ S.installShown = true; save(); go('ritual'); });
+  on('#see-thread','click',()=>go('thread'));
+  on('#to-install','click',()=>go('install'));
+  on('#to-signin','click',()=>go('signin'));
+  on('#to-restore','click',()=>go('signin'));
+  on('#fresh-start','click',()=>{ S.freshStart = true; save(); route = null; render(); });
+  on('#sync-in','click',syncSignIn);
+  on('#sync-out','click',syncSignOut);
+  on('#sync-back','click',()=>{ S.syncOffered = true; save(); route = null; render(); });
+  on('#sync-done','click',()=>{ S.syncOffered = true; save(); route = null; render(); });
+  on('#offer-backup','click',()=>go('signin'));
+  on('#to-before','click',()=>{ S.draft = {}; save(); go('before'); });
+  on('#to-after','click',()=>{ S.draft = S.draft || {}; save(); go('after'); });
+  on('#skip-timer','click',()=>go('after'));
+  on('#start-sit','click',()=>{
+    S.draft.startedAt = Date.now(); save(); go('sitting');
+  });
+  on('#end-sit','click',()=>{
+    S.draft.minutes = Math.max(1, Math.round((Date.now()-S.draft.startedAt)/60000));
+    save(); go('after');
+  });
+  on('#add-word','click',()=>{
+    const raw = prompt('Add a word to your vocabulary');
+    if(!raw || !raw.trim()) return;
+    const w = raw.trim().slice(0, 18);
+    if(S.words.some(x => x.toLowerCase() === w.toLowerCase())){ toast('That word is already there'); return; }
+    S.words.push(w);
+    pruneWords();
+    save(); go(view);
+  });
+  on('#f-note','input',e=>{ S.draft.note = e.target.value; });
+  on('#save-day','click',()=>{
+    const d = S.draft || {};
+    a.entries.push({day, ymd: logicalYMD(new Date()), startedAt: d.startedAt||null,
+                    tz: S.tz,
+                    minutes: d.minutes||null, before: d.before||null, after: d.after||null,
+                    note: ($('#f-note')? $('#f-note').value.trim() : (d.note||''))});
+    S.draft = null; save(); go('kept');
+  });
+  on('#yday-yes','click',()=>{
+    const yday = addDays(logicalYMD(now), -1);
+    a.entries.push({day: marked + 1, ymd: yday, startedAt: null, minutes: null,
+                    before: null, after: null, note: '', loggedLate: true});
+    a.askedYMD = logicalYMD(now);
+    save(); route = null; render();
+  });
+  on('#yday-no','click',()=>{
+    a.askedYMD = logicalYMD(now);
+    save(); route = null; render();
+  });
+  on('#again-today','click',()=>{
+    a.broken = true;
+    S.attempts.push({startYMD: logicalYMD(new Date()), entries:[], broken:false, obstacle:null});
+    save(); route = null; render();
+  });
+  on('#again-tomorrow','click',()=>{
+    a.broken = true;
+    S.attempts.push({startYMD: addDays(logicalYMD(new Date()),1), entries:[], broken:false, obstacle:null});
+    save(); route = null; render();
+  });
+  on('#export','click',exportAll);
+  on('#diag','click',()=>{
+    const local = (()=>{ try{ const r = localStorage.getItem(KEY);
+      const p = r ? JSON.parse(r) : null;
+      return p && p.attempts ? p.attempts.reduce((n,a)=>n+((a.entries||[]).length),0) : 0;
+    }catch(e){ return -1; } })();
+    idbGet().then(idb => {
+      const idbDays = idb && idb.attempts
+        ? idb.attempts.reduce((n,a)=>n+((a.entries||[]).length),0) : 0;
+      const mem = S.attempts.reduce((n,a)=>n+((a.entries||[]).length),0);
+      const last = S.updatedAt ? new Date(S.updatedAt).toLocaleString() : 'never';
+      alert('Days recorded\n\n' +
+            'in this session:  ' + mem + '\n' +
+            'in local storage: ' + local + '\n' +
+            'in the database:  ' + idbDays + '\n\n' +
+            'last saved: ' + last + '\n' +
+            'installed: ' + (isStandalone() ? 'yes' : 'no — this is the browser'));
+    }).catch(()=>alert('Could not read the database.'));
+  });
+  on('#begin-next','click',beginAnother);
+  on('#to-shelf','click',()=>go('shelf'));
+  on('#shelf-back','click',()=>{ route = null; render(); });
+  on('#shelf-back2','click',()=>go('shelf'));
+  document.querySelectorAll('.kept[data-kept]').forEach(el => el.addEventListener('click', ()=>{
+    S.view = +el.dataset.kept; go('kept-thread');
+  }));
+  on('#to-travel','click',()=>{ TRAVEL.tz = null; go('travel'); });
+  on('#travel-back','click',()=>{ TRAVEL.tz = null; TRAVEL.touched = false; route = null; render(); });
+  on('#travel-nope','click',()=>{
+    TRAVEL.dismissed = true; TRAVEL.tz = null; TRAVEL.touched = false;
+    route = null; render();
+  });
+  on('#f-tz','change', e => { TRAVEL.tz = e.target.value || null; TRAVEL.touched = true; render(); });
+  on('#tz-apply','click',()=>{
+    if(!TRAVEL.tz) return;
+    const s = anchorShift(now, TRAVEL.tz);
+    if(!s.safe){ toast('That would break the thread'); return; }
+    S.tz = TRAVEL.tz;
+    TRAVEL.tz = null; TRAVEL.touched = false; TRAVEL.dismissed = false;
+    save();
+    route = null; render();
+    toast('Anchored to ' + S.tz.split('/').pop().replace(/_/g,' '));
+  });
+  on('#to-import','click',()=>{ IMPORT.found=null; IMPORT.err=null; IMPORT.summary=null; go('import'); });
+  on('#import-back','click',()=>{ IMPORT.found=null; IMPORT.err=null; route=null; render(); });
+  on('#f-import','change',e=>{ const f=e.target.files && e.target.files[0]; if(f) importFile(f); });
+  on('#import-go','click',()=>{
+    if(!IMPORT.found) return;
+    // the same merge used for cloud sync: never drops an entry, keeps the
+    // richer version of a day, and a broken attempt stays broken
+    const merged = mergeState(S && S.practice ? S : null, IMPORT.found);
+    S = Object.assign(blank(), merged);
+    repairState();
+    save();
+    IMPORT.found = null; IMPORT.summary = null;
+    route = null; render();
+    toast('Record restored');
+  });
+  on('#share-card','click',shareCard);
+  on('#reset-all','click',()=>{
+    if(confirm('Start a completely new practice? Your current record will be exported first.')){
+      exportAll(); S = blank(); save();
+      try{ history.replaceState(null, '', '/'); }catch(e){}
+      route = null; render();
+    }
+  });
+
+  if(view === 'sitting'){
+    const tick = () => {
+      const el = $('#clock'); if(!el) return clearInterval(w._i);
+      const s = Math.floor((Date.now()-S.draft.startedAt)/1000);
+      el.textContent = Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+    };
+    const w = window; clearInterval(w._i); w._i = setInterval(tick, 1000); tick();
+  }
+  if(view === 'setup') holdPracticeField();
+  if(view === 'rules') wireHold('#hold', ()=>{
+    S.dayStartHour = +$('#f-hour').value; save();
+    route = null; render();
+  });
+  if(view === 'ritual') wireHold('#hold-day-one', ()=>{
+    S.onboarded = true;
+    if(!S.attempts.length) S.attempts.push({startYMD: S.startDate || nowYMD(), entries:[], broken:false, obstacle:null});
+    save(); route = null; render();
+  });
+  if(view === 'after') wireMic();
+}
+
+function holdMarkup(label){
+  const inner = `<b>${label}</b><i>Press and hold</i>`;
+  return `<span class="fill"></span><span class="lbl base">${inner}</span><span class="lbl over">${inner}</span>`;
+}
+function wireHold(sel, onDone){
+  const btn = $(sel); if(!btn) return;
+  const fill = btn.querySelector('.fill');
+  const over = btn.querySelector('.over');
+  const DUR = 2000, JUMP = 0.075;   // jump so the fill is unmistakable on the first frame
+  let t0 = null, raf = null;
+  const paint = v => {
+    fill.style.width = (v*100) + '%';
+    over.style.clipPath = 'inset(0 ' + (100 - v*100) + '% 0 0)';
+  };
+  const step = () => {
+    const p = Math.min(1, (Date.now()-t0)/DUR);
+    paint(p >= 1 ? 1 : JUMP + (1-JUMP) * Math.pow(p, 0.82));
+    if(p >= 1){ finish(); return; }
+    raf = requestAnimationFrame(step);
+  };
+  const start = e => {
+    e.preventDefault(); if(t0) return;
+    t0 = Date.now();
+    btn.classList.add('pressing');
+    fill.style.transition = 'none'; over.style.transition = 'none';
+    paint(JUMP);                     // visible before the first animation frame
+    step();
+  };
+  const cancel = () => {
+    if(!t0) return;
+    t0 = null; cancelAnimationFrame(raf);
+    btn.classList.remove('pressing');
+    fill.style.transition = 'width .28s ease'; over.style.transition = 'clip-path .28s ease';
+    paint(0);
+  };
+  const finish = () => {
+    t0 = null; cancelAnimationFrame(raf);
+    btn.classList.remove('pressing');
+    paint(1);
+    setTimeout(onDone, 180);
+  };
+  btn.addEventListener('pointerdown', start);
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,cancel));
+}
+
+function wireMic(){
+  const btn = $('#mic'); if(!btn) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ btn.addEventListener('click',()=>{ $('#f-note').focus(); toast('Use your keyboard\u2019s dictation key'); }); return; }
+  let rec = null, on = false;
+  btn.addEventListener('click',()=>{
+    if(on){ rec && rec.stop(); return; }
+    rec = new SR(); rec.interimResults = true; rec.continuous = false;
+    rec.onstart = ()=>{ on = true; btn.classList.add('on'); };
+    rec.onend = ()=>{ on = false; btn.classList.remove('on'); };
+    rec.onerror = ()=>{ toast('Dictation unavailable — type instead'); };
+    rec.onresult = e => {
+      let s = '';
+      for(let i=0;i<e.results.length;i++) s += e.results[i][0].transcript;
+      const f = $('#f-note'); f.value = s; S.draft.note = s;
+    };
+    rec.start();
+  });
+}
+
+
+/* ---------- the shareable card ----------
+   Drawn on a canvas at 1080x1080 so it lands well anywhere. Same marks as
+   the app: the dot grid, gold for kept days, ash for a broken attempt. */
+function drawCard(){
+  const S_ = 1080, dpr = 1;
+  const cv = document.createElement('canvas');
+  cv.width = S_; cv.height = S_;
+  const x = cv.getContext('2d');
+
+  const INK='#14162B', MOON='#E8E4DA', GOLD='#D9A441', FADE='#8B8FA8', ASH='#454A6B', DIMD='#333856';
+  x.fillStyle = INK; x.fillRect(0,0,S_,S_);
+
+  // a wash of pre-dawn light in one corner
+  const g = x.createRadialGradient(S_*0.78, S_*0.12, 20, S_*0.78, S_*0.12, S_*0.75);
+  g.addColorStop(0, 'rgba(60,64,116,0.55)'); g.addColorStop(1, 'rgba(20,22,43,0)');
+  x.fillStyle = g; x.fillRect(0,0,S_,S_);
+
+  const a = currentAttempt();
+  const marked = a ? highestMarked(a) : 0;
+  const total = S.lengthDays;
+  const done = marked >= total;
+
+  x.textAlign = 'center';
+  x.fillStyle = FADE;
+  x.font = '500 21px Poppins, sans-serif';
+  x.letterSpacing = '7px';
+  x.fillText('SADHANA TRACKER', S_/2, 116);
+  x.letterSpacing = '0px';
+
+  x.fillStyle = MOON;
+  x.font = '400 62px Lora, Georgia, serif';
+  const name = S.practice || 'Practice';
+  let size = 62;
+  while(x.measureText(name).width > S_ - 200 && size > 26){ size -= 2; x.font = '400 ' + size + 'px Lora, Georgia, serif'; }
+  x.fillText(name, S_/2, 232);
+
+  x.fillStyle = GOLD;
+  x.font = 'italic 400 34px Lora, Georgia, serif';
+  x.fillText(done ? 'forty days, without a gap' : 'day ' + marked + ' of ' + total, S_/2, 292);
+
+  // the count
+  const cols = total > 60 ? 20 : 10;
+  const rows = Math.ceil(total / cols);
+  const cell = Math.min(62, (S_ - 260) / cols);
+  const gx = S_/2 - (cols * cell)/2 + cell/2;
+  const gy = 420;
+  for(let i = 0; i < total; i++){
+    const cx = gx + (i % cols) * cell;
+    const cy = gy + Math.floor(i / cols) * cell;
+    const r = Math.max(5, cell * 0.16);
+    x.beginPath(); x.arc(cx, cy, r, 0, Math.PI*2);
+    if(i < marked){
+      x.fillStyle = GOLD; x.fill();
+      x.shadowColor = 'rgba(217,164,65,0.6)'; x.shadowBlur = 16; x.fill(); x.shadowBlur = 0;
+    } else {
+      x.strokeStyle = DIMD; x.lineWidth = 2; x.stroke();
+    }
+  }
+
+  const gridBottom = gy + rows * cell;
+
+  // the shift, which is the thing worth showing
+  if(a){
+    const es = a.entries.filter(e => e.before && e.after);
+    if(es.length){
+      const mode = k => { const c={}; es.forEach(e=>{ c[e[k]]=(c[e[k]]||0)+1; });
+        return Object.keys(c).sort((p,q)=>c[q]-c[p])[0]; };
+      const b = mode('before'), af = mode('after');
+      x.font = '400 40px Lora, Georgia, serif';
+      const bw = x.measureText(b).width, aw = x.measureText(af).width;
+      const totw = bw + 76 + aw;
+      let cx = S_/2 - totw/2;
+      const cy = gridBottom + 96;
+      x.textAlign = 'left';
+      x.fillStyle = MOON; x.fillText(b, cx, cy); cx += bw + 26;
+      x.strokeStyle = FADE; x.lineWidth = 3; x.lineCap = 'round';
+      x.beginPath(); x.moveTo(cx, cy-13); x.lineTo(cx+26, cy-13);
+      x.moveTo(cx+18, cy-21); x.lineTo(cx+26, cy-13);
+      x.moveTo(cx+18, cy-5); x.lineTo(cx+26, cy-13); x.stroke();
+      cx += 50;
+      x.fillStyle = GOLD; x.fillText(af, cx, cy);
+      x.textAlign = 'center';
+      x.fillStyle = FADE;
+      x.font = '400 25px Lora, Georgia, serif';
+      x.fillText('on ' + es.length + ' of ' + marked + ' days', S_/2, cy + 46);
+    }
+  }
+
+  if(S.sankalpa){
+    x.fillStyle = MOON;
+    x.font = 'italic 400 27px Lora, Georgia, serif';
+    wrapCanvas(x, '\u201c' + S.sankalpa + '\u201d', S_/2, S_ - 160, S_ - 280, 40);
+  }
+
+  x.fillStyle = FADE;
+  x.font = '300 22px Poppins, sans-serif';
+  x.fillText(fmtDate(nowYMD(), {day:'numeric', month:'long', year:'numeric'}), S_/2, S_ - 74);
+  return cv;
+}
+
+function wrapCanvas(x, text, cx, y, maxw, lh){
+  const words = text.split(' ');
+  let line = '', lines = [];
+  words.forEach(w => {
+    const t = (line + ' ' + w).trim();
+    if(x.measureText(t).width > maxw && line){ lines.push(line); line = w; }
+    else line = t;
+  });
+  if(line) lines.push(line);
+  lines = lines.slice(-3);
+  let yy = y - (lines.length - 1) * lh;
+  lines.forEach(l => { x.fillText(l, cx, yy); yy += lh; });
+}
+
+async function shareCard(){
+  try{
+    const cv = drawCard();
+    const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+    const file = new File([blob], 'sadhana-day-' + (highestMarked(currentAttempt()||{entries:[]})||0) + '.png',
+                          {type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file]});
+      return;
+    }
+    // no share sheet — fall back to a download
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = file.name; link.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    toast('Saved to your downloads');
+  }catch(e){
+    if(e && e.name === 'AbortError') return;      // they closed the share sheet
+    toast('Could not create the image');
+  }
+}
+
+function exportAll(){
+  let out = 'SADHANA — ' + S.practice + '\n' + S.lengthDays + ' days · timezone ' + S.tz + '\n\n';
+  S.attempts.forEach((at,i)=>{
+    out += '--- Attempt ' + (i+1) + ' · began ' + at.startYMD +
+           ' · reached day ' + highestMarked(at) + (at.obstacle? ' · ' + at.obstacle : '') + ' ---\n\n';
+    at.entries.slice().sort((x,y)=>x.day-y.day).forEach(e=>{
+      out += 'Day ' + e.day + '  ' + e.ymd +
+             (e.startedAt? '  ' + entryTime(e) : '') +
+             (e.minutes? '  ' + e.minutes + ' min' : '') + '\n';
+      out += (e.loggedLate && !e.before ? 'practised · logged the next day'
+              : (e.before||'—') + ' -> ' + (e.after||'—')) + '\n';
+      if(e.note) out += '"' + e.note + '"\n';
+      out += '\n';
+    });
+  });
+  // Everything above is for reading. Everything below is for restoring:
+  // the same record as data, so this file is a real backup rather than a
+  // keepsake. Import reads only what follows the marker.
+  const payload = JSON.parse(JSON.stringify(S));
+  delete payload.draft; delete payload.view;
+  out += '\n' + SAVE_MARK + '\n';
+  out += 'Do not edit below this line. Import this file to restore.\n\n';
+  out += b64encode(JSON.stringify({v:1, state:payload}));
+  out += '\n';
+
+  const blob = new Blob([out], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a2 = document.createElement('a');
+  a2.href = url; a2.download = 'sadhana-' + nowYMD() + '.txt'; a2.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  toast('Exported');
+}
+
+const SAVE_MARK = '--- SADHANA RECORD · MACHINE READABLE ---';
+
+// Journal entries can hold any character, so the encoding has to be exact.
+function b64encode(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin);
+}
+function b64decode(b64){
+  const bin = atob(b64);
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+function parseBackup(text){
+  const i = text.indexOf(SAVE_MARK);
+  if(i < 0) return {error:'This file has no record in it. Export a fresh copy from the app that holds your days.'};
+  // The payload is the last block of base64 in the file. Take the final
+  // non-empty line rather than the first match — the human-readable note
+  // that follows the marker is alphanumeric too.
+  const tail = text.slice(i + SAVE_MARK.length);
+  const lines = tail.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  let b64 = '';
+  for(let k = lines.length - 1; k >= 0; k--){
+    if(/^[A-Za-z0-9+/=]{24,}$/.test(lines[k])){ b64 = lines[k]; break; }
+  }
+  if(!b64) return {error:'The record in this file looks empty.'};
+  let obj;
+  try{
+    obj = JSON.parse(b64decode(b64));
+  }catch(e){ return {error:'The record in this file could not be read. It may have been edited.'}; }
+  const st = obj && obj.state;
+  if(!st || !st.practice || !Array.isArray(st.attempts))
+    return {error:'That file does not contain a practice record.'};
+  return {state: st};
+}
+
+function describeBackup(st){
+  const days = (st.attempts || []).reduce((n, a) => n + ((a.entries || []).length), 0);
+  const best = (st.attempts || []).reduce((m, a) =>
+    Math.max(m, (a.entries || []).reduce((k, e) => Math.max(k, e.day || 0), 0)), 0);
+  return {practice: st.practice, days, best, attempts: (st.attempts || []).length,
+          length: st.lengthDays || 40};
+}
+
+function importFile(file){
+  const r = new FileReader();
+  r.onload = () => {
+    const res = parseBackup(String(r.result || ''));
+    if(res.error){ IMPORT.err = res.error; IMPORT.found = null; render(); return; }
+    IMPORT.err = null;
+    IMPORT.found = res.state;
+    IMPORT.summary = describeBackup(res.state);
+    render();
+  };
+  r.onerror = () => { IMPORT.err = 'That file could not be opened.'; render(); };
+  r.readAsText(file);
+}
+
+const IMPORT = {found:null, summary:null, err:null};
+const TRAVEL = {tz:null, touched:false, dismissed:false};
+
+/* ---------- cloud backup ----------
+   Local storage stays the working copy: the app must open instantly at 4am
+   with no signal. The cloud is a backup and a second window, never a
+   dependency. Everything here no-ops when no config is present. */
+const SYNC = {on:false, user:null, busy:false, pulling:false, err:null, db:null, auth:null, fb:null};
+function returningFromSignIn(){
+  try{ return sessionStorage.getItem('signing-in') === '1'; }catch(e){ return false; }
+}
+function isIOS(){ return /iPhone|iPad|iPod/.test(navigator.userAgent); }
+function syncConfigured(){ return !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.projectId); }
+
+let authSettled = !syncConfigured();   // gate the seed stamp until auth has resolved
+
+let _initOnce = null;
+function syncInit(){
+  if(!syncConfigured()) return Promise.resolve(null);
+  if(!_initOnce) _initOnce = _syncInitReally().catch(e => { _initOnce = null; throw e; });
+  return _initOnce;
+}
+async function _syncInitReally(){
+  if(SYNC.fb) return SYNC.fb;
+  const [app, auth, store] = await Promise.all([
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'),
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js')
+  ]);
+  const a = app.initializeApp(window.FIREBASE_CONFIG);
+  SYNC.fb = {app:a, auth, store};
+  SYNC.auth = auth.getAuth(a);
+  try{ await auth.setPersistence(SYNC.auth, auth.browserLocalPersistence); }catch(e){}
+  SYNC.db = store.getFirestore(a);
+  auth.onAuthStateChanged(SYNC.auth, u => {
+    SYNC.user = u;
+    SYNC.on = !!u;
+    SYNC.busy = false;
+    if(u) syncPull();
+    render();                      // the status line must update on every screen
+  });
+  // a redirect sign-in only completes when this is called
+  try{
+    const res = await auth.getRedirectResult(SYNC.auth);
+    if(res && res.user){ SYNC.user = res.user; SYNC.on = true; }
+  }catch(e){
+    SYNC.err = 'Redirect error: ' + (e && e.code ? e.code : '?') +
+               (e && e.message ? ' — ' + String(e.message).slice(0, 160) : '');
+  }
+  authSettled = true;
+  try{ sessionStorage.removeItem('signing-in'); }catch(e){}
+  render();
+  return SYNC.fb;
+}
+
+// iOS only permits navigation inside the user gesture that triggered it.
+// Awaiting the Firebase import here spent the gesture, Safari blocked the
+// redirect, and only the second tap — with the import already cached —
+// got through. So the SDK is warmed before the button is offered, and the
+// redirect is called synchronously from the tap.
+function syncSignIn(){
+  if(!SYNC.fb){ syncInit().then(()=>render()).catch(()=>render()); return; }
+  const {GoogleAuthProvider, signInWithPopup, signInWithRedirect} = SYNC.fb.auth;
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({prompt: 'select_account'});
+  SYNC.busy = true; SYNC.err = null;
+
+  if(isStandalone() || isIOS()){
+    try{ sessionStorage.setItem('signing-in','1'); }catch(e){}
+    render();
+    signInWithRedirect(SYNC.auth, provider).catch(e => {
+      try{ sessionStorage.removeItem('signing-in'); }catch(_){}
+      SYNC.busy = false;
+      SYNC.err = 'Sign-in error: ' + (e && e.code ? e.code : '?');
+      render();
+    });
+    return;                                   // the page navigates away
+  }
+
+  render();
+  signInWithPopup(SYNC.auth, provider).catch(e => {
+    const code = String(e && e.code || '');
+    if(code.indexOf('cancelled') >= 0 || code.indexOf('closed-by-user') >= 0){
+      SYNC.busy = false; SYNC.err = null; render(); return;
+    }
+    if(code.indexOf('popup') >= 0 || code.indexOf('operation-not-supported') >= 0){
+      signInWithRedirect(SYNC.auth, provider); return;
+    }
+    SYNC.busy = false;
+    SYNC.err = 'Sign-in error: ' + code + (e && e.message ? ' — ' + String(e.message).slice(0,160) : '');
+    render();
+  });
+}
+
+async function syncSignOut(){
+  try{ await SYNC.fb.auth.signOut(SYNC.auth); }catch(e){}
+  SYNC.user = null; SYNC.on = false; render();
+}
+
+async function syncPull(){
+  if(!SYNC.user) return;
+  SYNC.pulling = true;
+  try{
+    const {doc, getDoc} = SYNC.fb.store;
+    const snap = await getDoc(doc(SYNC.db, 'records', SYNC.user.uid));
+    const cloud = snap.exists() ? snap.data() : null;
+    if(cloud && cloud.state){
+      const merged = mergeState(S, cloud.state);
+      S = Object.assign(blank(), merged);
+      save();
+    }
+    await syncPush(true);
+    if(route === 'signin') route = null;
+    SYNC.pulling = false;
+    render();
+  }catch(e){
+    SYNC.err = 'Backup error: ' + (e && e.code ? e.code : '?') +
+               (e && e.message ? ' — ' + String(e.message).slice(0, 160) : '');
+    SYNC.pulling = false;
+    render();
+  }
+}
+
+let _pushTimer = null;
+function syncPush(now){
+  if(!SYNC.user) return Promise.resolve();
+  clearTimeout(_pushTimer);
+  const doPush = async () => {
+    try{
+      const {doc, setDoc} = SYNC.fb.store;
+      const state = JSON.parse(JSON.stringify(S));
+      delete state.draft; delete state.view;
+      await setDoc(doc(SYNC.db, 'records', SYNC.user.uid), {state, updatedAt: Date.now()});
+      SYNC.err = null;
+    }catch(e){ SYNC.err = 'Backup is out of date — it will retry.'; }
+  };
+  if(now) return doPush();
+  _pushTimer = setTimeout(doPush, 1200);
+  return Promise.resolve();
+}
+
+/* ---------- sync: merging two copies of a record ---------- */
+// Reconcile two copies of a sadhana record. Days are written once and rarely
+// edited, so conflicts are near-impossible — but "near" is not "never", and
+// losing a day to a bad merge would break a container under a strict rule.
+// Rule: never drop an entry. When the same day exists twice, keep the richer one.
+
+function entryWeight(e){
+  if(!e) return -1;
+  let w = 0;
+  if(e.before) w += 1;
+  if(e.after) w += 1;
+  if(e.note) w += 2;
+  if(e.minutes) w += 1;
+  if(e.startedAt) w += 1;
+  return w;
+}
+
+function mergeAttempts(A, B){
+  const byKey = {};
+  const order = [];
+  const take = list => (list || []).forEach(at => {
+    if(!at || !at.startYMD) return;
+    const k = at.startYMD;
+    if(!byKey[k]){ byKey[k] = {startYMD:k, entries:{}, broken:false, obstacle:null}; order.push(k); }
+    const dst = byKey[k];
+    dst.broken = dst.broken || !!at.broken;
+    dst.obstacle = dst.obstacle || at.obstacle || null;
+    (at.entries || []).forEach(e => {
+      if(!e || e.day == null) return;
+      const cur = dst.entries[e.day];
+      if(entryWeight(e) > entryWeight(cur)) dst.entries[e.day] = e;
+    });
+  });
+  take(A); take(B);
+  return order.sort().map(k => ({
+    startYMD: k,
+    broken: byKey[k].broken,
+    obstacle: byKey[k].obstacle,
+    entries: Object.keys(byKey[k].entries)
+      .map(Number).sort((x,y)=>x-y).map(d => byKey[k].entries[d])
+  }));
+}
+
+function mergeCompleted(A, B){
+  const seen = {}, out = [];
+  [].concat(A||[], B||[]).forEach(c => {
+    if(!c) return;
+    const k = (c.practice||'') + '|' + (c.startYMD||'');
+    if(!seen[k]){ seen[k] = 1; out.push(c); }
+  });
+  return out;
+}
+
+function mergeState(local, cloud){
+  if(!cloud) return local;
+  if(!local) return cloud;
+  // scalars follow whichever copy was written last
+  const newer = (cloud.updatedAt || 0) > (local.updatedAt || 0) ? cloud : local;
+  const older = newer === cloud ? local : cloud;
+  const out = Object.assign({}, older, newer);
+  out.attempts = mergeAttempts(local.attempts, cloud.attempts);
+  out.completed = mergeCompleted(local.completed, cloud.completed);
+  // a vocabulary someone added to should never shrink
+  const words = (local.words || []).slice();
+  (cloud.words || []).forEach(w => { if(words.indexOf(w) < 0) words.push(w); });
+  out.words = words;
+  out.updatedAt = Math.max(local.updatedAt || 0, cloud.updatedAt || 0);
+  return out;
+}
+
+/* ---------- carrying setup across the install boundary ----------
+   An installed iOS web app gets its own storage container, so anything
+   entered in Safari is invisible to it. We put the setup in the URL at
+   the moment of installing; the manifest omits start_url, so the home
+   screen captures this address and the new container can restore from it.
+   Ignored on every later launch, and on Android where storage is shared. */
+const SEED_CAP = 12000;
+function packSeed(attempts, completed, notes){
+  const strip = as => as.map(a => ({
+    startYMD:a.startYMD, broken:a.broken, obstacle:a.obstacle,
+    entries: a.entries.map(e => notes ? e : Object.assign({}, e, {note:''}))
+  }));
+  const seed = {
+    p:S.practice, l:S.lengthDays, h:S.dayStartHour, z:S.tz, s:S.startDate,
+    w:S.words, o:S.onboarded, a:strip(attempts), c:completed
+  };
+  const bytes = new TextEncoder().encode(JSON.stringify(seed));
+  let bin = ''; bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+// Try to hand over everything. If the record is too long for a URL, shed the
+// least valuable parts first rather than handing over nothing at all.
+function encodeSeed(){
+  const cur = S.attempts.slice(-1);
+  const tiers = [
+    () => packSeed(S.attempts, S.completed, true),
+    () => packSeed(S.attempts, [], true),
+    () => packSeed(cur, [], true),
+    () => packSeed(cur, [], false),
+    () => packSeed([], [], false)
+  ];
+  let last = '';
+  for(const t of tiers){
+    last = t();
+    if(last.length <= SEED_CAP) return last;
+  }
+  return last;
+}
+function decodeSeed(str){
+  try{
+    const b64 = str.replace(/-/g,'+').replace(/_/g,'/');
+    const bin = atob(b64);
+    const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }catch(e){ return null; }
+}
+function stampSeed(){
+  if(isStandalone()) return;           // already installed; nothing to hand over
+  // A redirect sign-in comes back with its parameters in the URL, and Firebase
+  // has to read them before anything overwrites the address. Rewriting it here
+  // silently cancelled the sign-in and forced a second attempt.
+  if(!authSettled) return;
+  if(/[?&#](apiKey|authType|oauthAccessToken|providerId|code|state)=/.test(location.search + location.hash)) return;
+  try{
+    const s = encodeSeed();
+    if(s.length > SEED_CAP) return;
+    history.replaceState(null, '', '/?s=' + s);
+  }catch(e){}
+}
+function restoreSeed(){
+  // The seed exists for one job: carrying the record across the install
+  // boundary, where iOS hands the app a fresh, empty storage container.
+  // In a browser, empty storage means a genuinely fresh start — restoring
+  // there would resurrect an old practice on what should be a blank setup.
+  if(!isStandalone()) return false;
+  const m = location.search.match(/[?&]s=([^&]+)/);
+  if(!m) return false;
+  const d = decodeSeed(m[1]);
+  if(!d || !d.p) return false;
+  S = blank();
+  S.practice = d.p; S.lengthDays = d.l || 40; S.dayStartHour = (d.h == null ? 3 : d.h);
+  S.tz = d.z || S.tz; S.startDate = d.s || null;
+  if(Array.isArray(d.w) && d.w.length) S.words = d.w;
+  if(Array.isArray(d.a)) S.attempts = d.a;
+  if(Array.isArray(d.c)) S.completed = d.c;
+  S.onboarded = !!d.o;
+  S.installShown = true;
+  save();
+  return true;
+}
+
+function assertPracticeField(){
+  const f = document.getElementById('f-practice');
+  if(!f || document.activeElement === f) return;
+  const want = (S && S.practice) ? S.practice : '';
+  if(f.value !== want) f.value = want;
+}
+function holdPracticeField(){
+  assertPracticeField();
+  [0, 60, 300, 800].forEach(ms => setTimeout(assertPracticeField, ms));
+}
+window.addEventListener('pageshow', holdPracticeField);
+
+/* ---------- boot ---------- */
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); window._deferredPrompt = e; });
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) return;
+  if(route === 'kept' || route === 'thread' || route === 'complete') route = null;
+  if(route !== 'sitting') render();
+});
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+if(!isStandalone()) document.body.classList.add('browser');
+repairState();
+if(migrateWordOrder() | stampEntryZones()) save();
+render();
+
+// localStorage is the working copy and the first thing a browser evicts.
+// IndexedDB is the more durable second copy. Always reconcile the two on
+// boot rather than only when one is empty — a store can lose a single day
+// without losing the record, and the earlier version could not see that.
+// The merge never drops an entry, so this can only ever restore.
+idbGet().then(saved => {
+  if(!saved || !saved.practice) return;
+  const before = S && S.attempts
+    ? S.attempts.reduce((n, a) => n + ((a.entries || []).length), 0) : 0;
+  const merged = mergeState(S && S.practice ? S : null, saved);
+  const after = merged.attempts.reduce((n, a) => n + ((a.entries || []).length), 0);
+  // Always take the union — the merge can only add, never remove. Only say
+  // something when whole days came back; a quietly repaired note needs no
+  // announcement.
+  S = Object.assign(blank(), merged);
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+  repairState();
+  route = null; render();
+  if(after > before){
+    toast(before === 0 ? 'Your record was recovered'
+                       : 'Recovered ' + (after - before) + ' day' + (after - before === 1 ? '' : 's'));
+  }
+}).catch(()=>{});
+if(syncConfigured()){
+  setTimeout(()=>{ if(!authSettled){ authSettled = true; render(); } }, 6000);
+  syncInit().catch(err => {
+    SYNC.err = 'Firebase failed to load: ' + (err && err.message ? String(err.message).slice(0,160) : '?');
+    authSettled = true; render();
+  });
+}
+
+// hold the splash until webfonts settle, so text does not visibly reflow — but
+// never wait on the network for more than a moment
+(function dismissBoot(){
+  const b = document.getElementById('boot');
+  if(!b) return;
+  let done = false;
+  const hide = () => {
+    if(done) return; done = true;
+    b.classList.add('gone');
+    setTimeout(()=>b.remove(), 600);
+  };
+  const ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+  ready.then(()=>setTimeout(hide, 60)).catch(hide);
+  setTimeout(hide, 1400);
+})();
+</script>
+</body>
+</html>

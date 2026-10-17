@@ -1,0 +1,43 @@
+[build]
+  publish = "."
+
+# Firebase auth is proxied through this domain so the whole sign-in flow is
+# same-origin. Safari partitions storage for third-party domains, which is what
+# breaks signInWithRedirect inside an installed web app. These two rules must
+# stay ABOVE the catch-all below — Netlify uses the first matching rule.
+[[redirects]]
+  from = "/__/auth/*"
+  to = "https://sadhana-app-ecdfa.firebaseapp.com/__/auth/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/__/firebase/*"
+  to = "https://sadhana-app-ecdfa.firebaseapp.com/__/firebase/:splat"
+  status = 200
+  force = true
+
+# the audio test page must serve itself, not the app
+[[redirects]]
+  from = "/audio-test.html"
+  to = "/audio-test.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    # SAMEORIGIN, not DENY: Firebase auth uses an iframe on this origin.
+    X-Frame-Options = "SAMEORIGIN"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

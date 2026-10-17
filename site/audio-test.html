@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14162B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Audio test">
+<title>Audio test · Sadhana</title>
+<style>
+:root{--ink:#14162B;--slate:#1B1E38;--horizon:#2C3057;--moon:#E8E4DA;
+      --muted:#8B8FA8;--amrit:#D9A441;--bad:#E06C6C;--good:#7FBF8F}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--ink);color:var(--moon);font:400 16px/1.5 -apple-system,system-ui,sans-serif;
+     padding:env(safe-area-inset-top) 20px calc(env(safe-area-inset-bottom) + 120px)}
+h1{font-size:22px;font-weight:500;margin:26px 0 4px}
+p.sub{color:var(--muted);font-size:14px;margin-bottom:22px}
+.step{border-top:1px solid var(--horizon);padding:18px 0}
+.step h2{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--amrit);
+         font-weight:600;margin-bottom:10px}
+button,label.btn{display:block;width:100%;padding:15px;border-radius:100px;border:1px solid var(--horizon);
+  background:var(--slate);color:var(--moon);font-size:15px;text-align:center;margin-top:10px;cursor:pointer}
+button.go{background:var(--amrit);color:var(--ink);border-color:var(--amrit);font-weight:600}
+button:disabled{opacity:.4}
+#log{font:12px/1.55 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-word;
+     background:#0E1024;border:1px solid var(--horizon);border-radius:8px;padding:12px;margin-top:12px;
+     max-height:300px;overflow:auto}
+.ok{color:var(--good)} .no{color:var(--bad)} .dim{color:var(--muted)}
+.big{font-size:44px;font-variant-numeric:tabular-nums;text-align:center;margin:14px 0}
+.row{display:flex;gap:10px} .row button{flex:1}
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+
+<h1>Audio test</h1>
+<p class="sub">Five questions we cannot answer without a real iPhone. Work down the page, then send the log.</p>
+
+<div class="step">
+  <h2>1 · Environment</h2>
+  <div id="env" class="dim"></div>
+</div>
+
+<div class="step">
+  <h2>2 · Pick a recording</h2>
+  <label class="btn" for="pick">Choose an audio file</label>
+  <input type="file" id="pick" accept="audio/*">
+  <div id="picked" class="dim">Nothing chosen yet.</div>
+</div>
+
+<div class="step">
+  <h2>3 · Store it, then read it back</h2>
+  <button id="store" disabled>Save to the device and reload it</button>
+  <div id="storeout" class="dim">—</div>
+</div>
+
+<div class="step">
+  <h2>4 · Play it</h2>
+  <div class="big" id="pos">0:00</div>
+  <div class="row">
+    <button id="play" disabled>Play</button>
+    <button id="pause" disabled>Pause</button>
+  </div>
+  <div id="playout" class="dim">—</div>
+</div>
+
+<div class="step">
+  <h2>5 · Lock the screen</h2>
+  <p class="sub">Start playback, then lock the phone or switch apps for about 30 seconds and come back.
+     This is the one that decides the design.</p>
+  <button id="bgtest">Begin the background test</button>
+  <div id="bgout" class="dim">—</div>
+</div>
+
+<div class="step">
+  <h2>Log</h2>
+  <div id="log"></div>
+  <button id="copy">Copy the log</button>
+</div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const L = [];
+function log(msg, cls){
+  const t = new Date().toLocaleTimeString();
+  L.push(t + '  ' + msg);
+  const d = document.createElement('div');
+  if(cls) d.className = cls;
+  d.textContent = t + '  ' + msg;
+  $('#log').appendChild(d);
+  $('#log').scrollTop = $('#log').scrollHeight;
+}
+
+/* 1 — environment */
+(function(){
+  const standalone = window.matchMedia('(display-mode: standalone)').matches
+                     || window.navigator.standalone === true;
+  const ua = navigator.userAgent;
+  const ios = /iPhone|iPad|iPod/.test(ua);
+  const bits = [
+    'installed app: ' + (standalone ? 'yes' : 'no — running in the browser'),
+    'iOS: ' + (ios ? 'yes' : 'no'),
+    'IndexedDB: ' + ('indexedDB' in window ? 'yes' : 'NO'),
+    'MediaSession: ' + ('mediaSession' in navigator ? 'yes' : 'no'),
+    'storage estimate: ' + (navigator.storage && navigator.storage.estimate ? 'yes' : 'no')
+  ];
+  $('#env').innerHTML = bits.join('<br>');
+  bits.forEach(b => log(b));
+  if(navigator.storage && navigator.storage.estimate){
+    navigator.storage.estimate().then(e => {
+      const q = (e.quota/1048576).toFixed(0), u = (e.usage/1048576).toFixed(1);
+      log('storage: ' + u + ' MB used of about ' + q + ' MB available');
+    });
+  }
+  if(!standalone) log('NOTE — install to the home screen and run this there too. Results can differ.', 'no');
+})();
+
+/* 2 — pick */
+let picked = null;
+$('#pick').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  picked = f;
+  const mb = (f.size/1048576).toFixed(1);
+  $('#picked').textContent = f.name + ' · ' + mb + ' MB · ' + (f.type || 'unknown type');
+  log('picked: ' + f.name + ' · ' + mb + ' MB · type ' + (f.type || 'unknown'));
+  $('#store').disabled = false;
+});
+
+/* 3 — store and read back */
+let db = null, reloaded = null;
+function open(){
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('audio-test', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('files');
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+$('#store').addEventListener('click', async () => {
+  if(!picked) return;
+  $('#store').disabled = true;
+  try{
+    const t0 = performance.now();
+    db = db || await open();
+    await new Promise((res, rej) => {
+      const tx = db.transaction('files', 'readwrite');
+      tx.objectStore('files').put(picked, 'clip');
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+    });
+    const t1 = performance.now();
+    log('stored in ' + ((t1-t0)/1000).toFixed(2) + ' s', 'ok');
+
+    reloaded = await new Promise((res, rej) => {
+      const r = db.transaction('files','readonly').objectStore('files').get('clip');
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    });
+    if(!reloaded){ log('read back: NOTHING came back', 'no'); return; }
+    const same = reloaded.size === picked.size;
+    log('read back ' + (reloaded.size/1048576).toFixed(1) + ' MB — size ' +
+        (same ? 'matches' : 'DOES NOT MATCH'), same ? 'ok' : 'no');
+    $('#storeout').textContent = 'Stored and reloaded. ' + (reloaded.size/1048576).toFixed(1) + ' MB.';
+    $('#play').disabled = false;
+  }catch(err){
+    log('STORE FAILED: ' + (err && err.name) + ' — ' + (err && err.message), 'no');
+    $('#storeout').textContent = 'Failed. See the log.';
+  }
+  $('#store').disabled = false;
+});
+
+/* 4 — play */
+const audio = new Audio();
+audio.preload = 'auto';
+let url = null;
+function fmt(s){ s = Math.max(0, Math.floor(s)); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+
+$('#play').addEventListener('click', async () => {
+  try{
+    if(!url){
+      url = URL.createObjectURL(reloaded);
+      audio.src = url;
+      log('source attached from the stored file');
+    }
+    await audio.play();
+    log('play() resolved — audio is running', 'ok');
+    $('#pause').disabled = false;
+    $('#playout').textContent = 'Playing.';
+    if('mediaSession' in navigator){
+      navigator.mediaSession.metadata = new MediaMetadata({title:'Sadhana test'});
+      log('media session set — check the lock screen for controls');
+    }
+  }catch(err){
+    log('PLAY FAILED: ' + (err && err.name) + ' — ' + (err && err.message), 'no');
+    $('#playout').textContent = 'Failed. See the log.';
+  }
+});
+$('#pause').addEventListener('click', () => { audio.pause(); log('paused'); });
+
+audio.addEventListener('loadedmetadata', () => log('duration: ' + fmt(audio.duration)));
+audio.addEventListener('ended', () => log('the recording finished on its own', 'ok'));
+audio.addEventListener('error', () => log('AUDIO ERROR: code ' + (audio.error && audio.error.code), 'no'));
+audio.addEventListener('pause', () => log('pause event fired'));
+audio.addEventListener('playing', () => log('playing event fired'));
+setInterval(() => { $('#pos').textContent = fmt(audio.currentTime); }, 250);
+
+/* 5 — background */
+let bg = null;
+$('#bgtest').addEventListener('click', () => {
+  bg = {wall: Date.now(), pos: audio.currentTime, wasPlaying: !audio.paused};
+  log('background test armed. Lock the phone for ~30 s, then come back.');
+  $('#bgout').textContent = 'Armed. Lock the screen now, then return.';
+});
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){ log('app went to the background'); return; }
+  log('app came back');
+  if(!bg) return;
+  const away = (Date.now() - bg.wall)/1000;
+  const moved = audio.currentTime - bg.pos;
+  const kept = bg.wasPlaying && moved > away * 0.6;
+  log('away ' + away.toFixed(1) + ' s · audio advanced ' + moved.toFixed(1) + ' s', kept ? 'ok' : 'no');
+  log(bg.wasPlaying
+      ? (kept ? 'AUDIO KEPT PLAYING IN THE BACKGROUND' : 'AUDIO STOPPED WHEN BACKGROUNDED')
+      : 'audio was not playing, so this tells us nothing', kept ? 'ok' : 'no');
+  // a wall-clock timer must not drift, however the tab was suspended
+  log('a wall-clock timer would read ' + fmt(away) + ' — accurate regardless');
+  $('#bgout').textContent = bg.wasPlaying
+    ? (kept ? 'Audio survived the lock screen.' : 'Audio stopped when locked.')
+    : 'Play something first, then re-arm.';
+  bg = null;
+});
+
+$('#copy').addEventListener('click', async () => {
+  try{ await navigator.clipboard.writeText(L.join('\n')); log('log copied'); }
+  catch(e){ log('could not copy — screenshot it instead'); }
+});
+</script>
+</body>
+</html>
