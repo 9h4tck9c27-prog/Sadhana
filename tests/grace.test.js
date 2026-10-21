@@ -10,7 +10,6 @@ const nowYMD = () => ymdIn(NOW, S.tz);
 const save = () => {};
 const isStandalone = () => true;
 const syncConfigured = () => false;
-const LOG_GRACE_HOURS = 6;
 
 eval(js.slice(js.indexOf('function ymdIn'), js.indexOf('function fmtDate')));
 eval(js.slice(js.indexOf('function fmtDate'), js.indexOf('function nowYMD')));
@@ -20,8 +19,7 @@ function screen(){
   if(!a) return 'setup';
   const day = dayNumber(NOW), marked = highestMarked(a);
   if(marked >= S.lengthDays) return 'complete';
-  if(day === marked + 2 && !a.broken && a.askedYMD !== logicalYMD(NOW)
-     && msSinceClose(NOW) < LOG_GRACE_HOURS * 3600000) return 'yesterday';
+  if(day === marked + 2 && !a.broken && a.askedYMD !== logicalYMD(NOW)) return 'yesterday';
   if(day > marked + 1 || a.broken) return 'break';
   if(!Number.isFinite(day) || day < 1) return 'waiting';
   if(marked >= day) return 'thread';
@@ -54,9 +52,15 @@ ok('day four, day three marked — normal morning', screen(), 'today');
 setup(3); NOW = new Date('2026-08-13T06:00:00+01:00');
 ok('day four unmarked, 3h past the boundary', screen(), 'yesterday');
 
-// same, but the window has closed
+// the window is the whole day, not a few hours after midnight
 setup(3); NOW = new Date('2026-08-13T12:00:00+01:00');
-ok('same day, 9h past — window closed', screen(), 'break');
+ok('midday, same day — still asked', screen(), 'yesterday');
+setup(3); NOW = new Date('2026-08-13T23:30:00+01:00');
+ok('late that night — still asked', screen(), 'yesterday');
+setup(3); NOW = new Date('2026-08-14T00:30:00+01:00');
+ok('after midnight but before the 3am boundary — still the same day', screen(), 'yesterday');
+setup(3); NOW = new Date('2026-08-14T03:30:00+01:00');
+ok('once the boundary passes, the chance is gone', screen(), 'break');
 
 // already answered today
 setup(3, {asked:'2026-08-13'}); NOW = new Date('2026-08-13T06:00:00+01:00');

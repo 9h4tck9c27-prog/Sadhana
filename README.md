@@ -22,7 +22,8 @@ the app actually enforces.
   a *shift* rather than two unrelated scores.
 
 Strict about practice, forgiving about paperwork: if you practised and forgot to
-open the app, you can say so the next morning and the thread holds.
+open the app, you can say so at any point the following day and the thread
+holds. One unrecorded day, asked about once, answered honestly. Never two.
 
 ## Layout
 
@@ -31,7 +32,7 @@ site/          the deployable — drag this folder's contents to Netlify
   index.html   the entire app: markup, styles and logic in one file
   sw.js        service worker; bump CACHE on every deploy
   firebase-config.js   cloud sync, switched off (set to null)
-tests/         ten suites, no dependencies
+tests/         thirteen suites, no dependencies
 run-tests.sh   runs all of them
 ```
 
@@ -41,7 +42,7 @@ dependencies, so it cannot rot and can be read end to end.
 ## Running the tests
 
 ```sh
-./run-tests.sh          # all ten suites
+./run-tests.sh          # all thirteen suites
 node tests/rescue.test.js   # one of them
 ```
 
@@ -53,7 +54,10 @@ so they stay honest as the app changes rather than testing a copy.
 | `boundary` | the day boundary, across timezones and daylight saving |
 | `tz` / `rescue` | moving the anchor without breaking the thread |
 | `zone` | entry times staying true after the anchor moves |
-| `grace` | the logging grace window; strict about practice |
+| `grace` | forgiving one unrecorded day, never two |
+| `draft` | a sitting started and never finished |
+| `handlers` | paint() and wire() scopes; that buttons actually fire |
+| `deadend` | a break never strands you away from your record |
 | `reconcile` | localStorage and IndexedDB reconciling on boot |
 | `import` | export → import round trip, and files it must refuse |
 | `words` | the vocabulary and its migrations |
@@ -87,4 +91,17 @@ drops an entry, so reconciling can only ever restore.
 instead, which is correct only until someone travels.
 
 **A break is the heaviest thing the app says.** Before saying it, the router
-checks the benign explanation: an anchor left behind in another country.
+checks the benign explanations in order: an anchor left behind in another
+country, then a sitting that was started and never finished, then a day that
+simply went unlogged. Only then does it break. And the break screen always
+keeps the record reachable — reading it is never the thing you cannot do.
+
+**`paint()` draws and `wire()` binds, and they are different scopes** that
+declare near-identical locals. A handler reaching for one of `paint`'s locals
+throws on click and the button silently does nothing. `tests/handlers` lints
+for exactly that, because it already shipped once.
+
+**The app never invents what it did not measure.** A sitting finished from a
+stale draft has no duration, because the timer was never stopped. A day logged
+the next day says so in the thread and in the export. Counting the day and
+being honest about what is known are not in tension.

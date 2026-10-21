@@ -36,7 +36,7 @@ function makeState(practice, days, attempts){
     for(let d = 1; d <= n; d++){
       entries.push({day:d, ymd:'2026-08-' + String(8+d).padStart(2,'0'),
         before:'Restless', after:'Clear', minutes:31, startedAt:1786000000000,
-        tz:'Europe/London',
+        tz:'Europe/London', loggedLate: d === 2,
         note:'Hands went warm. Did not chase it.'});
     }
     st.attempts.push({startYMD:'2026-08-0' + (a+1), entries, broken: a < (attempts||1)-1,
@@ -71,6 +71,9 @@ ok('notes return intact', res.state && res.state.attempts[0].entries[0].note ===
 const sum = describeBackup(res.state);
 ok('summary counts days', sum.days === 15, sum.days);
 ok('summary reports furthest day', sum.best === 15, sum.best);
+
+ok('a late-logged day is named in the readable half',
+   file.includes('logged the next day'), 'marker missing');
 
 ok('the anchor stamp survives the round trip',
    res.state.attempts[0].entries[0].tz === 'Europe/London',

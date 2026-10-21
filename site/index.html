@@ -172,6 +172,8 @@ select{background:var(--slate);border:1px solid var(--amrit);border-radius:5px;p
 .kc{display:inline-block;font-family:var(--util);font-size:12px;background:#242848;border:1px solid var(--horizon);border-radius:5px;padding:7px 12px;margin-right:7px}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--slate);border:1px solid var(--horizon);color:var(--moon);font-family:var(--util);font-size:12.5px;padding:12px 20px;border-radius:100px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50}
 .toast.show{opacity:1}
+.late{font-family:var(--util);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ash);margin-top:7px}
 .beat{margin-bottom:30px}
 .bt{font-family:var(--serif);font-size:25px;color:var(--moon);line-height:1.2}
 .bb{font-size:16px;color:var(--muted);margin-top:5px}
@@ -225,7 +227,11 @@ const KEY = 'sadhana:v1';
 // Practice must be unbroken — that is the rule. Logging it need not be.
 // For a few hours after the boundary we ask whether yesterday was practised,
 // so a kept day is never lost to forgetting the phone.
-const LOG_GRACE_HOURS = 6;
+// No clock on it. `day === marked + 2` already says exactly one day is
+// unrecorded and today is the day after it — which IS the window. The six
+// hours this used to carry closed the door at 6am, and across 67 recorded
+// sittings this practitioner opened the app before 6am once. A forgiveness
+// nobody can reach is not a forgiveness.
 // Ordered expansive to contracted. Fourteen, because after 39 days of real
 // use the old twelve collapsed: departures landed on Steady or Fulfilled 69%
 // of the time, and only six words were ever chosen for "after" at all. The
@@ -389,6 +395,14 @@ function dayNumberUnder(now, tz, hour){
 // A shift forward is safe while it leaves today at most one day past the last
 // one recorded. Beyond that the router reads a gap and breaks the thread, so
 // the honest answer is to log today first rather than to move the anchor.
+// A sitting that was started but never finished still proves something: the
+// timer ran, and often a word was chosen before it. That evidence outlives
+// the session, so it should never quietly evaporate.
+function draftYMD(){
+  if(!S.draft || !S.draft.startedAt) return null;
+  return logicalYMD(new Date(S.draft.startedAt));
+}
+
 function deviceTz(){
   try{ return Intl.DateTimeFormat().resolvedOptions().timeZone || null; }
   catch(e){ return null; }
@@ -640,14 +654,14 @@ function render(){
 
   // Then the logging grace. This routing line went missing in an earlier
   // edit, so the screen existed but was never reached.
-  if(day === marked + 2 && !a.broken && a.askedYMD !== logicalYMD(now)
-     && msSinceClose(now) < LOG_GRACE_HOURS * 3600000)
+  if(day === marked + 2 && !a.broken && a.askedYMD !== logicalYMD(now))
     return paint('yesterday', now);
 
   if(day > marked + 1 && !a.broken) return paint('break', now);
   if(a.broken) return paint('break', now);
   if(!Number.isFinite(day) || day < 1) return paint('waiting', now);
   if(marked >= day) return paint('thread', now);
+  if(draftYMD() === logicalYMD(now)) return paint('unfinished', now);
   return paint('today', now);
 }
 
@@ -723,7 +737,7 @@ function paint(view, now){
       <p style="font-size:18px;color:var(--moon)">Open the app before and after. It takes ten seconds.</p>
       <p style="font-size:18px;color:var(--moon)">Miss a day and you begin again at one.</p>
 
-      <p class="sm" style="margin-top:24px">If you practised and forgot to open the app, you can mark it the next morning. Nothing will remind you — that part is yours.</p>
+      <p class="sm" style="margin-top:24px">If you practised and forgot to open the app, you can mark it the next day. Nothing will remind you — that part is yours.</p>
 
       <div style="margin-top:26px"><div class="lab" style="margin-bottom:10px">A day begins at</div>
         <select id="f-hour">
@@ -864,6 +878,19 @@ function paint(view, now){
       <button class="btn" id="end-sit">Finished</button>`;
   }
 
+  /* ---- UNFINISHED ---- */
+  else if(view === 'unfinished'){
+    const d = S.draft || {};
+    h = band({done:marked,today:day,n:S.lengthDays}) +
+      `<div class="lab" style="padding-top:26px">Day ${day} · unfinished</div>
+      <h2>You started<br>and did not finish.</h2>
+      <p>The timer began at <b style="color:var(--moon);font-weight:400">${entryTime({startedAt:d.startedAt, tz:S.tz})}</b>${d.before ? `, and you arrived <b style="color:var(--moon);font-weight:400">${esc(d.before)}</b>` : ''}. The day is not recorded yet.</p>
+      <p class="sm">Finish it now and day ${day} is kept. The length will not be part of the record — the timer was never stopped, so the app does not know it, and it will not guess.</p>
+      <div class="grow"></div>
+      <button class="btn" id="finish-draft">Finish recording day ${day}</button>
+      <button class="btn text" id="discard-draft">Discard — I did not practise</button>`;
+  }
+
   /* ---- AFTER ---- */
   else if(view === 'after'){
     const d = S.draft || {};
@@ -939,7 +966,8 @@ function paint(view, now){
       `<button class="btn text" id="to-travel" style="margin-top:4px">Travelling</button>` +
       `<button class="btn text" id="diag" style="margin-top:4px">Check my record</button>` +
       (isStandalone() ? '' : `<button class="btn text" id="to-install" style="margin-top:4px">Add to home screen</button>`) +
-      `<button class="btn text" id="reset-all" style="margin-top:4px">Settings</button>`;
+      `<button class="btn text" id="reset-all" style="margin-top:4px">Settings</button>` +
+      (route === 'thread' ? `<button class="btn quiet" id="thread-back" style="margin-top:22px">Back</button>` : '');
   }
 
   /* ---- TRAVELLING ---- */
@@ -1009,7 +1037,9 @@ function paint(view, now){
     h = band({done:marked,today:0,n:S.lengthDays}) +
       `<div class="lab" style="padding-top:22px">${fmtDate(yday)}</div>
       <h1>Did you practise<br>yesterday?</h1>
-      <p>Day ${marked + 1} is not yet recorded. If you practised and simply did not open the app, mark it now and the thread continues.</p>
+      ${draftYMD() === yday
+        ? `<p>You started a sitting at <b style="color:var(--moon);font-weight:400">${entryTime({startedAt:S.draft.startedAt, tz:S.tz})}</b>${S.draft.before ? ` and arrived <b style="color:var(--moon);font-weight:400">${esc(S.draft.before)}</b>` : ''}, and never came back to finish. Day ${marked + 1} is not yet recorded.</p>`
+        : `<p>Day ${marked + 1} is not yet recorded. If you practised and simply did not open the app, mark it now and the thread continues.</p>`}
       <p style="font-style:italic;color:var(--moon)">&bull;&nbsp; Only you know. The count is worth nothing if this answer is not true.</p>
       <div class="grow"></div>
       <button class="btn" id="yday-yes">Yes — I practised</button>
@@ -1042,6 +1072,7 @@ function paint(view, now){
   /* ---- BREAK ---- */
   else if(view === 'break'){
     const missed = marked + 1;
+    const last = a.entries.slice().sort((x,y) => y.day - x.day)[0];
     h = band({done:0,ash:marked,n:S.lengthDays}) +
       `<div class="lab" style="padding-top:22px">${fmtDate(logicalYMD(now))} · ${hourText(S.dayStartHour)} has passed</div>
       <h2>Day ${missed}<br>went unrecorded.</h2>
@@ -1049,6 +1080,7 @@ function paint(view, now){
         <div class="tl">sa tu dirgha-kala nairantarya satkara asevito dridha-bhumih</div>
         <div class="en">Practice becomes firm ground when it is tended a long while, without a gap, and with care.</div></div>
       <p>Nairantarya is the middle condition, and it is the one that broke. The count returns to day one. Nothing you wrote is deleted.</p>
+      ${last ? `<p class="sm">The last day this app holds is <b style="color:var(--moon);font-weight:400">day ${last.day}</b>, recorded ${fmtDate(last.ymd,{weekday:'long',day:'numeric',month:'long'})}${entryTime(last) ? ' at ' + entryTime(last) : ''}. If you practised after that, read the thread before you decide anything here.</p>` : ''}
       <div style="margin-top:26px"><div class="lab">What happened · optional</div>
         ${chipRow(OBSTACLES, a.obstacle)}
       </div>
@@ -1057,7 +1089,11 @@ function paint(view, now){
       <button class="btn text" id="again-tomorrow">Begin again tomorrow</button>
       ${(deviceTz() && deviceTz() !== S.tz)
         ? `<button class="btn text" id="to-travel" style="margin-top:14px">Your anchor is in ${esc(S.tz.split('/').pop().replace(/_/g,' '))} — check it</button>`
-        : ''}`;
+        : ''}
+      <div class="hr" style="margin-top:22px"></div>
+      <button class="btn text" id="see-thread">Read the thread</button>
+      <button class="btn text" id="export" style="margin-top:4px">Export a copy</button>
+      <button class="btn text" id="diag" style="margin-top:4px">Check my record</button>`;
   }
 
   /* ---- SHELF ---- */
@@ -1145,9 +1181,10 @@ function threadHTML(attempts){
       <div class="entry ${past?'past':''}">
         <div class="emeta"><span><b>Day ${e.day}</b> · ${fmtDate(e.ymd,{weekday:'short'})}</span>
         <span>${entryTime(e)}${e.minutes? ' · '+e.minutes+'m':''}</span></div>
-        <div class="shift">${e.loggedLate && !e.before
-            ? 'Practised · logged the next day'
+        <div class="shift">${(!e.before && !e.after)
+            ? 'Practised'
             : esc(e.before||'—') + '<span>&rarr;</span>' + esc(e.after||'—')}</div>
+        ${e.loggedLate ? `<div class="late">Logged the next day</div>` : ''}
         ${e.note? `<div class="etext">&ldquo;${esc(e.note)}&rdquo;</div>`:''}
       </div>`).join('');
   }
@@ -1207,6 +1244,10 @@ function wire(view, now){
   const on = (sel, ev, fn) => { const el = $(sel); if(el) el.addEventListener(ev, fn); };
   const a = currentAttempt();
   const day = a ? dayNumber(now) : 0;
+  // paint() has its own `marked`; wire() is a separate scope and needs
+  // its own. Without it the grace screen's Yes threw on click and the
+  // button silently did nothing.
+  const marked = a ? highestMarked(a) : 0;
 
   document.querySelectorAll('.chip[data-practice]').forEach(b=>b.addEventListener('click',()=>{
     const name = b.dataset.practice;
@@ -1237,6 +1278,7 @@ function wire(view, now){
   on('#f-hour','change',e=>{ S.dayStartHour = +e.target.value; save(); });
   on('#installed','click',()=>{ S.installShown = true; save(); go('ritual'); });
   on('#see-thread','click',()=>go('thread'));
+  on('#thread-back','click',()=>{ route = null; render(); });
   on('#to-install','click',()=>go('install'));
   on('#to-signin','click',()=>go('signin'));
   on('#to-restore','click',()=>go('signin'));
@@ -1274,24 +1316,35 @@ function wire(view, now){
                     note: ($('#f-note')? $('#f-note').value.trim() : (d.note||''))});
     S.draft = null; save(); go('kept');
   });
+  on('#finish-draft','click',()=>{
+    // the timer was never stopped, so the length is genuinely unknown
+    S.draft.minutes = null; save(); go('after');
+  });
+  on('#discard-draft','click',()=>{ S.draft = null; save(); route = null; render(); });
+
   on('#yday-yes','click',()=>{
     const yday = addDays(logicalYMD(now), -1);
-    a.entries.push({day: marked + 1, ymd: yday, startedAt: null, minutes: null,
-                    before: null, after: null, note: '', loggedLate: true});
+    const d = (draftYMD() === yday) ? S.draft : {};
+    a.entries.push({day: marked + 1, ymd: yday,
+                    startedAt: d.startedAt || null, tz: S.tz, minutes: null,
+                    before: d.before || null, after: d.after || null,
+                    note: d.note || '', loggedLate: true});
+    if(draftYMD() === yday) S.draft = null;
     a.askedYMD = logicalYMD(now);
     save(); route = null; render();
   });
   on('#yday-no','click',()=>{
+    S.draft = null;
     a.askedYMD = logicalYMD(now);
     save(); route = null; render();
   });
   on('#again-today','click',()=>{
-    a.broken = true;
+    a.broken = true; S.draft = null;
     S.attempts.push({startYMD: logicalYMD(new Date()), entries:[], broken:false, obstacle:null});
     save(); route = null; render();
   });
   on('#again-tomorrow','click',()=>{
-    a.broken = true;
+    a.broken = true; S.draft = null;
     S.attempts.push({startYMD: addDays(logicalYMD(new Date()),1), entries:[], broken:false, obstacle:null});
     save(); route = null; render();
   });
@@ -1594,8 +1647,9 @@ function exportAll(){
       out += 'Day ' + e.day + '  ' + e.ymd +
              (e.startedAt? '  ' + entryTime(e) : '') +
              (e.minutes? '  ' + e.minutes + ' min' : '') + '\n';
-      out += (e.loggedLate && !e.before ? 'practised · logged the next day'
+      out += ((!e.before && !e.after) ? 'practised'
               : (e.before||'—') + ' -> ' + (e.after||'—')) + '\n';
+      if(e.loggedLate) out += 'logged the next day\n';
       if(e.note) out += '"' + e.note + '"\n';
       out += '\n';
     });

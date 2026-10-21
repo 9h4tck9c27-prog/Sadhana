@@ -1,4 +1,4 @@
-const CACHE = 'sadhana-v41';
+const CACHE = 'sadhana-v46';
 const CORE = ['/', '/index.html', '/manifest.webmanifest', '/firebase-config.js',
               '/icon-192.png', '/icon-512.png'];
 
