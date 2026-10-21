@@ -28,11 +28,11 @@ holds. One unrecorded day, asked about once, answered honestly. Never two.
 ## Layout
 
 ```
-site/          the deployable — drag this folder's contents to Netlify
+site/          the deployable — Netlify's base directory
   index.html   the entire app: markup, styles and logic in one file
-  sw.js        service worker; bump CACHE on every deploy
+  sw.js        service worker; network-first, nothing to bump
   firebase-config.js   cloud sync, switched off (set to null)
-tests/         thirteen suites, no dependencies
+tests/         fourteen suites, no dependencies
 run-tests.sh   runs all of them
 ```
 
@@ -42,7 +42,7 @@ dependencies, so it cannot rot and can be read end to end.
 ## Running the tests
 
 ```sh
-./run-tests.sh          # all thirteen suites
+./run-tests.sh          # all fourteen suites
 node tests/rescue.test.js   # one of them
 ```
 
@@ -62,14 +62,23 @@ so they stay honest as the app changes rather than testing a copy.
 | `import` | export → import round trip, and files it must refuse |
 | `words` | the vocabulary and its migrations |
 | `shelf` | archiving a finished container without losing a day |
+| `sw` | that a deploy needs nothing remembered |
 | `e2e` | the whole journey, install to day forty |
 
 ## Deploying
 
-Zip the contents of `site/` and drop it on Netlify, **after bumping `CACHE` in
-`sw.js`** — the service worker serves the old version until the cache name
-changes. The update lands on the second launch: the first serves from cache
-while the new version downloads.
+Push to `main`. Netlify is configured with **base directory `site`** and no
+build command; `site/netlify.toml` does the rest. Nothing needs editing,
+renaming or bumping first — that was true once of the service worker's cache
+name and is deliberately no longer true of anything.
+
+Netlify looks for `netlify.toml` in the base directory and the repository
+root, which is why the base directory must be set: the file lives in `site/`,
+alongside the thing it configures. Without it you silently lose the auth
+proxy, the redirects and the `sw.js` cache header.
+
+The service worker serves network-first, so a change reaches an open app on
+its next load. The cache is the offline copy, not the serving copy.
 
 Records live in `localStorage` and IndexedDB keyed to the domain, so deploying
 never touches them. Clearing website data does.
