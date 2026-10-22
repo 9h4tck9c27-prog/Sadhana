@@ -32,7 +32,7 @@ site/          the deployable — Netlify's base directory
   index.html   the entire app: markup, styles and logic in one file
   sw.js        service worker; network-first, nothing to bump
   firebase-config.js   cloud sync, switched off (set to null)
-tests/         fourteen suites, no dependencies
+tests/         fifteen suites, no dependencies
 run-tests.sh   runs all of them
 ```
 
@@ -42,7 +42,7 @@ dependencies, so it cannot rot and can be read end to end.
 ## Running the tests
 
 ```sh
-./run-tests.sh          # all fourteen suites
+./run-tests.sh          # all fifteen suites
 node tests/rescue.test.js   # one of them
 ```
 
@@ -63,6 +63,7 @@ so they stay honest as the app changes rather than testing a copy.
 | `words` | the vocabulary and its migrations |
 | `shelf` | archiving a finished container without losing a day |
 | `sw` | that a deploy needs nothing remembered |
+| `audio` | the recording stays on the device, and plays |
 | `e2e` | the whole journey, install to day forty |
 
 ## Deploying
@@ -109,6 +110,15 @@ keeps the record reachable — reading it is never the thing you cannot do.
 declare near-identical locals. A handler reaching for one of `paint`'s locals
 throws on click and the button silently does nothing. `tests/handlers` lints
 for exactly that, because it already shipped once.
+
+**The recording never leaves the phone.** It is picked once from Files with a
+plain file input, kept in an IndexedDB store of its own, and played from a
+blob URL. Its own store matters: if the browser ever reclaims space it takes
+a file you can add again rather than days you cannot. Playback is an `<audio>`
+element and must stay one — the Web Audio API is silent on iOS whenever the
+ringer switch is off, which is precisely when a pre-dawn practice happens.
+And `play()` has to be called inside the tap, with nothing awaited first, or
+iOS refuses it.
 
 **The app never invents what it did not measure.** A sitting finished from a
 stale draft has no duration, because the timer was never stopped. A day logged

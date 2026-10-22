@@ -8,6 +8,9 @@ const js = html.slice(html.lastIndexOf('<script>') + 8, html.lastIndexOf('</scri
 let S, NOW = new Date('2026-09-19T08:00:00-07:00');
 const nowYMD = () => '2026-09-19';
 const save = () => { S.updatedAt = Date.now(); };
+let forgot = 0, deleted = [];
+const audioForget = () => { forgot++; };
+const audioDel = id => { deleted.push(id); return Promise.resolve(); };
 let rendered = 0, route = null;
 const render = () => { rendered++; };
 
@@ -52,6 +55,7 @@ function ok(label, cond, detail){
 console.log('\nFINISHING A CONTAINER\n');
 
 S = finished('Vyana Vayu Kryia', 40, 2);
+S.audio = {id:'aud-one', name:'class.m4a', size:1000, added:1};
 const daysBefore = S.attempts.reduce((n,a)=>n+a.entries.length, 0);
 beginAnother();
 
@@ -64,11 +68,15 @@ ok('  and its summary', S.completed[0].stats.after === 'Steady', JSON.stringify(
 ok('  dated', S.completed[0].startYMD === '2026-08-09' && S.completed[0].endYMD === '2026-09-18',
    S.completed[0].startYMD + ' to ' + S.completed[0].endYMD);
 
+ok('the recording is released', forgot > 0);
+ok('  and deleted from the device', deleted.includes('aud-one'), deleted.join(','));
+
 console.log('\n  --- and the app is ready for the next ---');
 ok('the practice name is cleared', S.practice === '');
 ok('no attempts carried over', S.attempts.length === 0);
 ok('onboarding is not repeated', S.installShown === true);
 ok('the vocabulary is kept', S.words.length === DEFAULT_WORDS.length);
+ok('no recording is carried into the new practice', !S.audio);
 ok('the day boundary is kept', S.dayStartHour === 3);
 ok('the timezone is kept', S.tz === 'America/Los_Angeles');
 

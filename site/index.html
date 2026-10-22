@@ -172,6 +172,20 @@ select{background:var(--slate);border:1px solid var(--amrit);border-radius:5px;p
 .kc{display:inline-block;font-family:var(--util);font-size:12px;background:#242848;border:1px solid var(--horizon);border-radius:5px;padding:7px 12px;margin-right:7px}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--slate);border:1px solid var(--horizon);color:var(--moon);font-family:var(--util);font-size:12.5px;padding:12px 20px;border-radius:100px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50}
 .toast.show{opacity:1}
+.player{margin-top:26px}
+.prow{display:flex;align-items:center;justify-content:center;gap:26px}
+.pbtn{background:none;border:0;padding:9px;cursor:pointer;line-height:0;opacity:.85}
+.pbtn:active{opacity:.5}
+.pplay{width:62px;height:62px;border-radius:50%;border:0;background:var(--amrit);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:0}
+.pplay:disabled{opacity:.4}
+.pplay:active{transform:scale(.96)}
+.ptrack{height:3px;border-radius:2px;background:var(--horizon);margin:22px 4px 0;overflow:hidden}
+.ptrack i{display:block;height:100%;width:0;background:var(--amrit);transition:width .25s linear}
+.ptime{display:flex;justify-content:space-between;margin-top:9px;
+  font-family:var(--util);font-size:11px;letter-spacing:.1em;color:var(--muted)}
+.perr{font-family:var(--util);font-size:11px;letter-spacing:.06em;color:var(--amrit);
+  text-align:center;margin-top:10px;min-height:14px}
 .late{font-family:var(--util);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--ash);margin-top:7px}
 .beat{margin-bottom:30px}
@@ -323,7 +337,7 @@ function blank(){
     tz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
     startDate:null, words: DEFAULT_WORDS.slice(),
     attempts:[], completed:[], onboarded:false, installShown:false,
-    draft:null, view:null, syncOffered:false, freshStart:false, updatedAt:0
+    draft:null, view:null, audio:null, syncOffered:false, freshStart:false, updatedAt:0
   };
 }
 let S = load();
@@ -349,12 +363,48 @@ function idbOpen(){
   if(_db) return Promise.resolve(_db);
   return new Promise((res, rej) => {
     try{
-      const r = indexedDB.open('sadhana', 1);
-      r.onupgradeneeded = () => { r.result.createObjectStore('state'); };
+      // Version 2 adds the audio store. Recordings live in a store of their
+      // own so that if the browser ever reclaims space it takes a file you
+      // can add again, not the days you cannot.
+      const r = indexedDB.open('sadhana', 2);
+      r.onupgradeneeded = () => {
+        const db = r.result;
+        if(!db.objectStoreNames.contains('state')) db.createObjectStore('state');
+        if(!db.objectStoreNames.contains('audio')) db.createObjectStore('audio');
+      };
       r.onsuccess = () => { _db = r.result; res(_db); };
       r.onerror = () => rej(r.error);
+      // another tab holding version 1 open would otherwise hang this forever
+      r.onblocked = () => rej(new Error('blocked'));
     }catch(e){ rej(e); }
   });
+}
+
+/* ---------- the recording ----------
+   One file per practice, picked once from Files or iCloud and kept on the
+   device. Nothing is uploaded. The record and the recording never share a
+   store, and the record is never the thing that gets evicted. */
+function audioPut(id, blob){
+  return idbOpen().then(db => new Promise((res, rej) => {
+    const tx = db.transaction('audio', 'readwrite');
+    tx.objectStore('audio').put(blob, id);
+    tx.oncomplete = res;
+    tx.onerror = () => rej(tx.error);
+    tx.onabort = () => rej(tx.error || new Error('aborted'));
+  }));
+}
+function audioGet(id){
+  return idbOpen().then(db => new Promise(res => {
+    const r = db.transaction('audio', 'readonly').objectStore('audio').get(id);
+    r.onsuccess = () => res(r.result || null);
+    r.onerror = () => res(null);
+  })).catch(() => null);
+}
+function audioDel(id){
+  if(!id) return Promise.resolve();
+  return idbOpen().then(db => {
+    db.transaction('audio', 'readwrite').objectStore('audio').delete(id);
+  }).catch(() => {});
 }
 function idbPut(state){
   idbOpen().then(db => {
@@ -368,6 +418,96 @@ function idbGet(){
     r.onsuccess = () => res(r.result ? JSON.parse(r.result) : null);
     r.onerror = () => res(null);
   })).catch(()=>null);
+}
+
+/* ---------- the player ----------
+   A plain <audio> element, not the Web Audio API: on iOS the Web Audio path
+   is silent whenever the ringer switch is off, and a pre-dawn practice is
+   exactly when the phone is silenced. */
+const AUDIO = {el:null, url:null, ready:false, playing:false, loading:false, err:null};
+
+function fmtClock(s){
+  if(!Number.isFinite(s) || s < 0) return '—';
+  s = Math.floor(s);
+  return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+}
+
+function audioForget(){
+  if(AUDIO.el){ try{ AUDIO.el.pause(); AUDIO.el.removeAttribute('src'); AUDIO.el.load(); }catch(e){} }
+  if(AUDIO.url){ try{ URL.revokeObjectURL(AUDIO.url); }catch(e){} }
+  AUDIO.el = null; AUDIO.url = null; AUDIO.ready = false; AUDIO.playing = false;
+}
+
+function audioLoad(){
+  if(!S.audio || !S.audio.id || AUDIO.el || AUDIO.loading) return;
+  AUDIO.loading = true; AUDIO.err = null;
+  audioGet(S.audio.id).then(blob => {
+    AUDIO.loading = false;
+    if(!blob){ AUDIO.err = 'That recording is no longer on this phone.'; paintAudio(); return; }
+    const el = new Audio();
+    el.preload = 'auto';
+    el.playsInline = true;
+    AUDIO.url = URL.createObjectURL(blob);
+    el.src = AUDIO.url;
+    el.addEventListener('loadedmetadata', () => { AUDIO.ready = true; paintAudio(); });
+    el.addEventListener('play',  () => { AUDIO.playing = true;  paintAudio(); });
+    el.addEventListener('pause', () => { AUDIO.playing = false; paintAudio(); });
+    el.addEventListener('ended', () => { AUDIO.playing = false; paintAudio(); });
+    el.addEventListener('timeupdate', paintAudio);
+    el.addEventListener('error', () => { AUDIO.err = 'That file could not be played.'; paintAudio(); });
+    AUDIO.el = el;
+    paintAudio();
+  }).catch(() => { AUDIO.loading = false; });
+}
+
+function audioToggle(){
+  const el = AUDIO.el;
+  if(!el) return;
+  // play() must be called inside the tap itself — nothing may be awaited first
+  if(el.paused){
+    el.play().then(() => {
+      if('mediaSession' in navigator){
+        try{
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: (S.audio && S.audio.name) || 'Practice',
+            artist: S.practice || ''});
+          navigator.mediaSession.setActionHandler('play',  () => audioToggle());
+          navigator.mediaSession.setActionHandler('pause', () => audioToggle());
+          navigator.mediaSession.setActionHandler('seekbackward', () => audioSkip(-15));
+          navigator.mediaSession.setActionHandler('seekforward',  () => audioSkip(15));
+        }catch(e){}
+      }
+    }).catch(() => { AUDIO.err = 'iOS would not start playback.'; paintAudio(); });
+  } else {
+    el.pause();
+  }
+}
+
+function audioSkip(sec){
+  const el = AUDIO.el;
+  if(!el || !AUDIO.ready) return;
+  const dur = Number.isFinite(el.duration) ? el.duration : el.currentTime + Math.abs(sec);
+  el.currentTime = Math.max(0, Math.min(dur, el.currentTime + sec));
+  paintAudio();
+}
+
+// The sitting screen is not re-rendered while the timer runs, so the player
+// writes to its own nodes rather than asking for a repaint.
+function paintAudio(){
+  const el = AUDIO.el;
+  const play = $('#a-play'), fill = $('#a-fill'), now = $('#a-now'),
+        dur = $('#a-dur'), err = $('#a-err');
+  if(err) err.textContent = AUDIO.err || '';
+  if(play){
+    play.innerHTML = AUDIO.playing ? ICON.pause : ICON.play;
+    play.setAttribute('aria-label', AUDIO.playing ? 'Pause' : 'Play');
+    play.disabled = !AUDIO.el;
+  }
+  if(!el) return;
+  const d = Number.isFinite(el.duration) ? el.duration : 0;
+  if(now) now.textContent = fmtClock(el.currentTime);
+  if(dur) dur.textContent = d ? fmtClock(d) : '—';
+  if(fill) fill.style.width = (d ? Math.min(100, el.currentTime / d * 100) : 0) + '%';
 }
 
 /* ---------- dates ---------- */
@@ -555,6 +695,10 @@ function lotusSVG(cls, size){
     ${paths}<line x1="-17" y1="5" x2="17" y2="5"/></svg>`;
 }
 const ICON = {
+  play:`<svg width="26" height="26" viewBox="-12 -12 24 24" fill="#14162B"><path d="M-5,-8 L8,0 L-5,8 Z"/></svg>`,
+  pause:`<svg width="26" height="26" viewBox="-12 -12 24 24" fill="#14162B"><rect x="-6.5" y="-8" width="4.5" height="16" rx="1"/><rect x="2" y="-8" width="4.5" height="16" rx="1"/></svg>`,
+  back15:`<svg width="30" height="30" viewBox="-12 -12 24 24" fill="none" stroke="#E8E4DA" stroke-width="1.5" stroke-linecap="round"><path d="M3,-8.1 A8.6,8.6 0 1 1 -3,-8.1"/><path d="M-2.6,-10.6 L-2.6,-5.6 L-6.6,-8.1 Z" fill="#E8E4DA" stroke="none"/><text x="0" y="3.4" text-anchor="middle" font-size="9.5" font-weight="500" font-family="Poppins,system-ui,sans-serif" fill="#E8E4DA" stroke="none">15</text></svg>`,
+  fwd15:`<svg width="30" height="30" viewBox="-12 -12 24 24" fill="none" stroke="#E8E4DA" stroke-width="1.5" stroke-linecap="round"><path d="M-3,-8.1 A8.6,8.6 0 1 0 3,-8.1"/><path d="M2.6,-10.6 L2.6,-5.6 L6.6,-8.1 Z" fill="#E8E4DA" stroke="none"/><text x="0" y="3.4" text-anchor="middle" font-size="9.5" font-weight="500" font-family="Poppins,system-ui,sans-serif" fill="#E8E4DA" stroke="none">15</text></svg>`,
   share:`<svg width="20" height="20" viewBox="-12 -12 24 24" fill="none" stroke="#E8E4DA" stroke-width="1.5" stroke-linecap="round"><path d="M-6,-1 L-6,8 L6,8 L6,-1"/><path d="M-6,-1 L-2.6,-1 M2.6,-1 L6,-1"/><path d="M0,2 L0,-9 M-3.4,-5.4 L0,-9 L3.4,-5.4"/></svg>`,
   kebab:`<svg width="20" height="20" viewBox="-12 -12 24 24" fill="#E8E4DA"><circle cx="0" cy="-5.5" r="1.6"/><circle cx="0" cy="0" r="1.6"/><circle cx="0" cy="5.5" r="1.6"/></svg>`,
   kebab3:`<svg width="20" height="20" viewBox="-12 -12 24 24" fill="none" stroke="#E8E4DA" stroke-width="1.3"><circle cx="0" cy="0" r="10.5"/><circle cx="-4.6" cy="0" r="1.5" fill="#E8E4DA" stroke="none"/><circle cx="0" cy="0" r="1.5" fill="#E8E4DA" stroke="none"/><circle cx="4.6" cy="0" r="1.5" fill="#E8E4DA" stroke="none"/></svg>`,
@@ -873,8 +1017,25 @@ function paint(view, now){
       <div class="center">
         <div id="clock" style="font-size:46px;letter-spacing:.02em">0:00</div>
         <p class="sm">Started at ${entryTime({startedAt:S.draft.startedAt, tz:S.tz})}</p>
-      </div>
+      </div>` +
+      (S.audio && S.audio.id
+        ? `<div class="player">
+             <div class="prow">
+               <button class="pbtn" id="a-back" aria-label="Back fifteen seconds">${ICON.back15}</button>
+               <button class="pplay" id="a-play" aria-label="Play" disabled>${ICON.play}</button>
+               <button class="pbtn" id="a-fwd" aria-label="Forward fifteen seconds">${ICON.fwd15}</button>
+             </div>
+             <div class="ptrack"><i id="a-fill"></i></div>
+             <div class="ptime"><span id="a-now">0:00</span><span id="a-dur">—</span></div>
+             <div class="perr" id="a-err"></div>
+           </div>`
+        : `<div class="center" style="margin-top:30px">
+             <label class="btn text" for="a-file">Add your recording</label>
+             <p class="sm">Kept on this phone. Nothing is uploaded.</p>
+           </div>`) +
+      `<input type="file" id="a-file" accept="audio/*" style="display:none">
       <div class="grow"></div>
+      ${S.audio && S.audio.id ? `<label class="btn text" for="a-file" style="margin-bottom:6px">Change the recording</label>` : ''}
       <button class="btn" id="end-sit">Finished</button>`;
   }
 
@@ -1161,6 +1322,8 @@ function paint(view, now){
   if((view === 'signin' || view === 'restore') && syncConfigured() && !SYNC.fb){
     syncInit().then(()=>render()).catch(()=>{});
   }
+  // nothing should still be playing once the practice is over
+  if(view !== 'sitting' && AUDIO.el) audioForget();
   app.innerHTML = h;
   wire(view, now);
 }
@@ -1212,6 +1375,10 @@ function archiveCurrent(){
 
 function beginAnother(){
   archiveCurrent();
+  // The recording belongs to the practice that is ending. Releasing it frees
+  // tens of megabytes; the next practice adds its own.
+  audioForget();
+  if(S.audio && S.audio.id) audioDel(S.audio.id);
   // keep the vocabulary and the settings; clear the practice itself
   const keep = {words: S.words.slice(), dayStartHour: S.dayStartHour, tz: S.tz,
                 completed: S.completed, installShown: true, syncOffered: S.syncOffered};
@@ -1316,6 +1483,24 @@ function wire(view, now){
                     note: ($('#f-note')? $('#f-note').value.trim() : (d.note||''))});
     S.draft = null; save(); go('kept');
   });
+  on('#a-play','click', audioToggle);
+  on('#a-back','click', ()=>audioSkip(-15));
+  on('#a-fwd','click',  ()=>audioSkip(15));
+  on('#a-file','change', e => {
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    const old = S.audio && S.audio.id;
+    const id = 'aud-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    toast('Saving to this phone…');
+    audioPut(id, f).then(() => {
+      audioForget();
+      if(old) audioDel(old);
+      S.audio = {id, name: f.name, size: f.size, added: Date.now()};
+      save(); render();
+      toast('Recording saved · ' + Math.max(1, Math.round(f.size / 1048576)) + ' MB');
+    }).catch(() => toast('That file could not be saved'));
+  });
+
   on('#finish-draft','click',()=>{
     // the timer was never stopped, so the length is genuinely unknown
     S.draft.minutes = null; save(); go('after');
@@ -1416,6 +1601,7 @@ function wire(view, now){
   });
 
   if(view === 'sitting'){
+    audioLoad(); paintAudio();
     const tick = () => {
       const el = $('#clock'); if(!el) return clearInterval(w._i);
       const s = Math.floor((Date.now()-S.draft.startedAt)/1000);
