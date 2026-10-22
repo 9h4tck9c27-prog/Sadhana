@@ -10,7 +10,10 @@ let pass = 0, fail = 0;
 const ok=(l,c,d)=>{ if(c){pass++;console.log('  ok    '+l);} else {fail++;console.log('  FAIL  '+l+(d!==undefined?'  '+d:''));} };
 
 console.log('\nTHE RECORDING STAYS ON THE DEVICE\n');
-ok('it is picked with a file input', /type="file"[^>]*accept="audio\/\*"/.test(html));
+const acc = (html.match(/id="a-file" accept="([^"]+)"/) || [])[1] || '';
+ok('it is picked with a file input', /type="file"/.test(html) && acc.includes('audio/*'));
+ok('  with the extensions named, which iOS needs to keep files selectable',
+   ['.mp3','.m4a','.wav','.aac'].every(x => acc.includes(x)), acc);
 ok('nothing uploads it', !/fetch\([^)]*audio/i.test(code) && !/FormData/.test(code));
 ok('it lives in a store of its own', /createObjectStore\('audio'\)/.test(code));
 ok('  separate from the record', /createObjectStore\('state'\)/.test(code));
@@ -18,6 +21,16 @@ ok('  so eviction can take the file and not the days',
    /objectStoreNames\.contains\('audio'\)/.test(code) && /objectStoreNames\.contains\('state'\)/.test(code));
 ok('the database version was raised for it', /indexedDB\.open\('sadhana', 2\)/.test(code));
 ok('an older tab holding it open cannot hang the app', /onblocked/.test(code));
+
+console.log('\n  --- a file that will not fit is refused in words ---');
+const pick = code.slice(code.indexOf("on('#a-file','change'"), code.indexOf("on('#finish-draft'"));
+ok('headroom is checked before writing', /storage\.estimate/.test(pick));
+ok('  and the shortfall is given in megabytes', /mb\(free\)/.test(pick));
+ok('persistence is requested before storing tens of megabytes', /storage\.persist/.test(pick));
+ok('a quota failure is named as one', /QuotaExceededError/.test(pick));
+ok('any other failure reports its real name', /err\.name/.test(pick));
+ok('  rather than a shrug', !/could not be saved'\)\)/.test(pick));
+ok('the diagnostic shows what room is left', /'limit: '/.test(code) && /'free:  '/.test(code));
 
 console.log('\n  --- it plays through a silenced phone ---');
 ok('playback uses an audio element', /new Audio\(\)/.test(code));

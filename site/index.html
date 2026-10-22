@@ -1032,8 +1032,9 @@ function paint(view, now){
         : `<div class="center" style="margin-top:30px">
              <label class="btn text" for="a-file">Add your recording</label>
              <p class="sm">Kept on this phone. Nothing is uploaded.</p>
+             <div class="perr" id="a-err">${esc(AUDIO.err || '')}</div>
            </div>`) +
-      `<input type="file" id="a-file" accept="audio/*" style="display:none">
+      `<input type="file" id="a-file" accept="audio/*,.mp3,.m4a,.aac,.wav,.aiff,.aif,.caf,.m4b,.mp4,.mov" style="display:none">
       <div class="grow"></div>
       ${S.audio && S.audio.id ? `<label class="btn text" for="a-file" style="margin-bottom:6px">Change the recording</label>` : ''}
       <button class="btn" id="end-sit">Finished</button>`;
@@ -1489,16 +1490,50 @@ function wire(view, now){
   on('#a-file','change', e => {
     const f = e.target.files && e.target.files[0];
     if(!f) return;
+    const mb = n => (n / 1048576).toFixed(1) + ' MB';
     const old = S.audio && S.audio.id;
     const id = 'aud-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    toast('Saving to this phone…');
-    audioPut(id, f).then(() => {
-      audioForget();
-      if(old) audioDel(old);
-      S.audio = {id, name: f.name, size: f.size, added: Date.now()};
-      save(); render();
-      toast('Recording saved · ' + Math.max(1, Math.round(f.size / 1048576)) + ' MB');
-    }).catch(() => toast('That file could not be saved'));
+
+    AUDIO.err = null;
+    toast('Saving ' + mb(f.size) + ' to this phone…');
+    paintAudio();
+
+    // Ask the browser to treat this origin as worth keeping before writing
+    // tens of megabytes into it. On an installed app iOS usually grants it.
+    const persisted = (navigator.storage && navigator.storage.persist)
+      ? navigator.storage.persist().catch(() => false) : Promise.resolve(false);
+
+    persisted
+      .then(() => (navigator.storage && navigator.storage.estimate)
+        ? navigator.storage.estimate().catch(() => null) : null)
+      .then(est => {
+        // Say so before the write fails, rather than after, and in numbers.
+        if(est && Number.isFinite(est.quota) && Number.isFinite(est.usage)){
+          const free = est.quota - est.usage;
+          if(free < f.size * 1.05){
+            throw Object.assign(new Error('no room'), {
+              friendly: 'This phone has ' + mb(free) + ' free for the app and the file is ' +
+                        mb(f.size) + '. A shorter or more compressed copy would fit.'});
+          }
+        }
+        return audioPut(id, f);
+      })
+      .then(() => {
+        audioForget();
+        if(old) audioDel(old);
+        S.audio = {id, name: f.name, size: f.size, added: Date.now()};
+        save(); render();
+        toast('Recording saved · ' + mb(f.size));
+      })
+      .catch(err => {
+        const name = (err && err.name) || '';
+        AUDIO.err = err && err.friendly ? err.friendly
+          : (name === 'QuotaExceededError'
+              ? 'There is not enough room on this phone for ' + mb(f.size) + '. A smaller file would fit.'
+              : 'Could not save it: ' + (name || 'unknown') +
+                (err && err.message ? ' — ' + String(err.message).slice(0, 120) : ''));
+        render();
+      });
   });
 
   on('#finish-draft','click',()=>{
@@ -1539,17 +1574,26 @@ function wire(view, now){
       const p = r ? JSON.parse(r) : null;
       return p && p.attempts ? p.attempts.reduce((n,a)=>n+((a.entries||[]).length),0) : 0;
     }catch(e){ return -1; } })();
-    idbGet().then(idb => {
+    const est = (navigator.storage && navigator.storage.estimate)
+      ? navigator.storage.estimate().catch(()=>null) : Promise.resolve(null);
+    Promise.all([idbGet(), est]).then(([idb, st]) => {
       const idbDays = idb && idb.attempts
         ? idb.attempts.reduce((n,a)=>n+((a.entries||[]).length),0) : 0;
       const mem = S.attempts.reduce((n,a)=>n+((a.entries||[]).length),0);
       const last = S.updatedAt ? new Date(S.updatedAt).toLocaleString() : 'never';
+      const mb = n => Number.isFinite(n) ? (n/1048576).toFixed(1) + ' MB' : '?';
       alert('Days recorded\n\n' +
             'in this session:  ' + mem + '\n' +
             'in local storage: ' + local + '\n' +
             'in the database:  ' + idbDays + '\n\n' +
             'last saved: ' + last + '\n' +
-            'installed: ' + (isStandalone() ? 'yes' : 'no — this is the browser'));
+            'installed: ' + (isStandalone() ? 'yes' : 'no — this is the browser') + '\n\n' +
+            'Storage\n' +
+            'used:  ' + (st ? mb(st.usage) : 'unknown') + '\n' +
+            'limit: ' + (st ? mb(st.quota) : 'unknown') + '\n' +
+            'free:  ' + (st && Number.isFinite(st.quota) && Number.isFinite(st.usage)
+                          ? mb(st.quota - st.usage) : 'unknown') + '\n' +
+            'recording: ' + (S.audio ? S.audio.name + ' · ' + mb(S.audio.size) : 'none'));
     }).catch(()=>alert('Could not read the database.'));
   });
   on('#begin-next','click',beginAnother);
