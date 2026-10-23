@@ -432,8 +432,27 @@ function fmtClock(s){
   return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
 }
 
+// Everything the lock screen knows about this practice, handed back.
+function audioSessionEnd(){
+  if(!('mediaSession' in navigator)) return;
+  try{
+    navigator.mediaSession.playbackState = 'none';
+    navigator.mediaSession.metadata = null;
+    ['play','pause','stop','seekbackward','seekforward','seekto',
+     'previoustrack','nexttrack'].forEach(a => {
+      try{ navigator.mediaSession.setActionHandler(a, null); }catch(e){}
+    });
+  }catch(e){}
+}
+
 function audioForget(){
-  if(AUDIO.el){ try{ AUDIO.el.pause(); AUDIO.el.removeAttribute('src'); AUDIO.el.load(); }catch(e){} }
+  // Order matters. The session is released while the element still exists;
+  // tearing the element down first leaves iOS holding a Now Playing entry
+  // for a practice that is over — and load() on a source-less element
+  // re-registers it at 0:00 rather than removing it.
+  if(AUDIO.el){ try{ AUDIO.el.pause(); }catch(e){} }
+  audioSessionEnd();
+  if(AUDIO.el){ try{ AUDIO.el.removeAttribute('src'); AUDIO.el.load(); }catch(e){} }
   if(AUDIO.url){ try{ URL.revokeObjectURL(AUDIO.url); }catch(e){} }
   AUDIO.el = null; AUDIO.url = null; AUDIO.ready = false; AUDIO.playing = false;
 }
@@ -450,9 +469,19 @@ function audioLoad(){
     AUDIO.url = URL.createObjectURL(blob);
     el.src = AUDIO.url;
     el.addEventListener('loadedmetadata', () => { AUDIO.ready = true; paintAudio(); });
-    el.addEventListener('play',  () => { AUDIO.playing = true;  paintAudio(); });
-    el.addEventListener('pause', () => { AUDIO.playing = false; paintAudio(); });
-    el.addEventListener('ended', () => { AUDIO.playing = false; paintAudio(); });
+    el.addEventListener('play',  () => {
+      AUDIO.playing = true;
+      try{ navigator.mediaSession.playbackState = 'playing'; }catch(e){}
+      paintAudio(); });
+    el.addEventListener('pause', () => {
+      AUDIO.playing = false;
+      try{ navigator.mediaSession.playbackState = 'paused'; }catch(e){}
+      paintAudio(); });
+    el.addEventListener('ended', () => {
+      // the recording plays once; when it finishes it is finished
+      AUDIO.playing = false;
+      audioSessionEnd();
+      paintAudio(); });
     el.addEventListener('timeupdate', paintAudio);
     el.addEventListener('error', () => { AUDIO.err = 'That file could not be played.'; paintAudio(); });
     AUDIO.el = el;

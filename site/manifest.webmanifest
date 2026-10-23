@@ -1,7 +1,10 @@
 {
+  "id": "/",
   "name": "Sadhana Tracker",
   "short_name": "Sadhana",
   "description": "A strict container for a daily sadhana. No notifications.",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#14162B",

@@ -63,6 +63,25 @@ ok('an unknown length does not produce NaN', Number.isFinite(AUDIO.el.currentTim
 AUDIO.ready = false; at(100); audioSkip(15);
 ok('skipping before it has loaded does nothing', AUDIO.el.currentTime === 100);
 
+console.log('\n  --- the lock screen is handed back ---');
+const forget = code.slice(code.indexOf('function audioForget'), code.indexOf('function audioLoad'));
+ok('finishing clears the metadata', /metadata = null/.test(code));
+ok('  declares nothing is playing', /playbackState = 'none'/.test(code));
+ok('  and releases every control it took',
+   /setActionHandler\(a, null\)/.test(code));
+ok('the session is released before the element is torn down',
+   forget.indexOf('audioSessionEnd()') < forget.indexOf("removeAttribute('src')"));
+ok('the end of the recording releases it too',
+   /audioSessionEnd\(\);\s*paintAudio\(\); \}\);/.test(code.replace(/\s+/g,' ').replace(/ \}\);/g,' });')) ||
+   /'ended'[\s\S]{0,160}audioSessionEnd/.test(code));
+ok('iOS is told the state on play and pause',
+   /playbackState = 'playing'/.test(code) && /playbackState = 'paused'/.test(code));
+
+const man = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'site', 'manifest.webmanifest'), 'utf8'));
+ok('the app declares an identity of its own', man.id === '/');
+ok('  with a start url', man.start_url === '/');
+ok('  and a scope', man.scope === '/');
+
 console.log('\n  --- nothing is left playing, and nothing is left behind ---');
 ok('leaving the timer screen releases it', /view !== 'sitting' && AUDIO\.el\) audioForget/.test(code));
 ok('the blob URL is revoked', /revokeObjectURL/.test(code));
